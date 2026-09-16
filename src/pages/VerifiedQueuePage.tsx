@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 import { storageService } from "@/lib/db";
 import { exportToExcel } from "@/lib/excelExport";
 import type { ContactRecord } from "@/types";
@@ -85,6 +86,7 @@ function CardThumb({
 
 // ─── main page ────────────────────────────────────────────────────────────────
 export default function VerifiedQueuePage() {
+  const navigate = useNavigate();
   const records = useLiveQuery(() => storageService.getVerifiedContacts(), []);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
@@ -393,28 +395,40 @@ export default function VerifiedQueuePage() {
 
         {/* ── Empty State ─────────────────────────────────────────── */}
         {filteredRecords.length === 0 ? (
-          <div className="py-16 px-6 flex flex-col items-center text-center">
-            <div className="bg-primary/8 p-5 rounded-2xl mb-5">
-              <Users className="w-10 h-10 text-primary/60" />
+          <div className="py-20 px-6 flex flex-col items-center text-center space-y-4">
+            <div className="w-16 h-16 rounded-3xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 shadow-sm">
+              <Users className="w-8 h-8" />
             </div>
-            <h3 className="text-lg font-semibold text-foreground">
-              No contacts found
-            </h3>
-            <p className="text-sm text-muted-foreground mt-2 max-w-xs leading-relaxed">
-              {activeFilterCount > 0
-                ? "No contacts match your current filters. Try adjusting or resetting them."
-                : "Scan a business card to start building your contact list."}
-            </p>
-            {activeFilterCount > 0 && (
+            <div className="space-y-1.5 max-w-sm">
+              <h3 className="text-xl font-bold text-foreground tracking-tight">
+                {records.length === 0 ? "No verified contacts yet" : "No matching contacts found"}
+              </h3>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                {records.length === 0
+                  ? "Your scanned business cards will appear here after you review and save them."
+                  : "No contacts match your current search filters. Try adjusting or resetting them."}
+              </p>
+            </div>
+            {records.length === 0 ? (
               <Button
-                variant="outline"
-                size="sm"
-                className="mt-5 h-9 text-xs"
-                onClick={resetFilters}
+                size="default"
+                className="mt-2 h-11 px-7 rounded-xl font-semibold text-xs bg-slate-950 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950"
+                onClick={() => navigate("/")}
               >
-                <X className="w-3.5 h-3.5 mr-1.5" />
-                Reset Filters
+                Scan Your First Card
               </Button>
+            ) : (
+              activeFilterCount > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-2 h-9 text-xs rounded-xl"
+                  onClick={resetFilters}
+                >
+                  <X className="w-3.5 h-3.5 mr-1.5" />
+                  Reset Filters
+                </Button>
+              )
             )}
           </div>
         ) : (

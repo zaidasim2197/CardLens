@@ -4,12 +4,12 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { name: "Scan Card", to: "/", icon: Scan },
-  { name: "Verified", to: "/verified", icon: ListChecks },
+  { name: "Verified Contacts", to: "/verified", icon: ListChecks },
 ];
 
 export default function MobileNav() {
   return (
-    <nav className="md:hidden flex items-center justify-around bg-card border-t shrink-0 h-16 px-2 safe-area-bottom">
+    <nav className="md:hidden flex items-center justify-around bg-background/95 backdrop-blur-md border-t border-border/80 shrink-0 h-16 px-4 pb-[env(safe-area-inset-bottom,0px)] sticky bottom-0 z-30">
       {navItems.map((item) => {
         const Icon = item.icon;
         return (
@@ -18,18 +18,19 @@ export default function MobileNav() {
             to={item.to}
             className={({ isActive }) =>
               cn(
-                "flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors rounded-lg",
+                "flex items-center justify-center gap-2 w-full py-2 text-xs font-semibold rounded-full transition-all duration-200 mx-1",
                 isActive
-                  ? "text-primary font-medium"
+                  ? "bg-slate-950 text-white shadow-sm dark:bg-white dark:text-slate-950"
                   : "text-muted-foreground hover:text-foreground"
               )
             }
           >
-            <Icon className="w-5 h-5" />
-            <span className="text-[10px] uppercase tracking-wide">{item.name}</span>
+            <Icon className="w-4 h-4" />
+            <span className="tracking-tight">{item.name}</span>
           </NavLink>
         );
       })}
     </nav>
   );
 }
+

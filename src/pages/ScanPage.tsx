@@ -35,7 +35,6 @@ function CameraModal({
   // ── start / restart stream ──────────────────────────────────────────────────
   const startCamera = useCallback(
     async (mode: "environment" | "user") => {
-      // kill previous stream
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((t) => t.stop());
         streamRef.current = null;
@@ -58,13 +57,13 @@ function CameraModal({
         setStatus("error");
         if (e.name === "NotAllowedError" || e.name === "PermissionDeniedError") {
           setErrorMsg(
-            "Camera access was denied. Please allow camera permission in your browser and try again."
+            "Camera access was denied. Please allow camera permission in your browser settings and try again."
           );
         } else if (e.name === "NotFoundError" || e.name === "DevicesNotFoundError") {
           setErrorMsg("No camera found on this device.");
         } else if (e.name === "NotReadableError" || e.name === "TrackStartError") {
           setErrorMsg(
-            "Camera is in use by another application. Close it and try again."
+            "Camera is currently in use by another application. Please close it and try again."
           );
         } else {
           setErrorMsg(`Camera error: ${e.message || e.name}`);
@@ -78,7 +77,6 @@ function CameraModal({
 
       video.srcObject = stream;
 
-      // Wait for metadata before playing — avoids the "stuck on loading" bug
       await new Promise<void>((resolve) => {
         const onReady = () => {
           video.removeEventListener("loadedmetadata", onReady);
@@ -102,7 +100,6 @@ function CameraModal({
     []
   );
 
-  // mount
   useEffect(() => {
     startCamera(facingMode);
     return () => {
@@ -111,7 +108,6 @@ function CameraModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── capture ─────────────────────────────────────────────────────────────────
   const doCapture = useCallback(() => {
     if (capturedRef.current) return;
     capturedRef.current = true;
@@ -139,26 +135,24 @@ function CameraModal({
     );
   }, [onCapture]);
 
-  // ── switch camera ────────────────────────────────────────────────────────────
   const switchCamera = () => {
     const next = facingMode === "environment" ? "user" : "environment";
     setFacingMode(next);
     startCamera(next);
   };
 
-  // ── portal renders outside the clipping AppLayout ───────────────────────────
   return createPortal(
     <div
       style={{
         position: "fixed",
         inset: 0,
         zIndex: 9999,
-        background: "#000",
+        background: "#090D16",
         display: "flex",
         flexDirection: "column",
       }}
     >
-      {/* ── Full-screen video — no letterbox ── */}
+      {/* ── Full-screen video ── */}
       <video
         ref={videoRef}
         playsInline
@@ -174,110 +168,71 @@ function CameraModal({
         }}
       />
 
+      {/* ── Business Card Alignment Frame Overlay ── */}
+      {status === "live" && (
+        <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-6 z-10">
+          <div className="w-full max-w-sm aspect-[1.75/1] rounded-2xl border-2 border-white/60 relative shadow-[0_0_0_9999px_rgba(0,0,0,0.55)]">
+            {/* Corner focus brackets */}
+            <div className="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-blue-400 rounded-tl-lg" />
+            <div className="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-blue-400 rounded-tr-lg" />
+            <div className="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 border-blue-400 rounded-bl-lg" />
+            <div className="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 border-blue-400 rounded-br-lg" />
+
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-white/70 text-xs font-semibold uppercase tracking-wider bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm">
+                Position Business Card Here
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Loading state ── */}
       {status === "loading" && (
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 12,
-            color: "rgba(255,255,255,0.7)",
-          }}
-        >
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white/70">
           <div className="w-10 h-10 rounded-full border-2 border-white/20 border-t-white animate-spin" />
-          <p className="text-sm">Starting camera…</p>
+          <p className="text-sm font-medium">Initializing camera…</p>
         </div>
       )}
 
       {/* ── Error state ── */}
       {status === "error" && (
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 16,
-            padding: "0 32px",
-            textAlign: "center",
-          }}
-        >
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 text-center">
           <div className="bg-red-500/20 p-4 rounded-full">
             <CameraOff className="w-10 h-10 text-red-400" />
           </div>
-          <p className="text-white font-semibold text-base">Camera Unavailable</p>
+          <p className="text-white font-bold text-lg">Camera Unavailable</p>
           <p className="text-white/60 text-sm leading-relaxed max-w-xs">{errorMsg}</p>
           <button
             onClick={() => startCamera(facingMode)}
-            className="mt-2 px-5 py-2 rounded-full border border-white/20 text-white text-sm font-medium hover:bg-white/10 transition-colors"
+            className="mt-2 px-6 py-2.5 rounded-full border border-white/20 text-white text-xs font-semibold hover:bg-white/10 transition-colors"
           >
             Try Again
           </button>
         </div>
       )}
 
-      {/* ── Top bar — floats OVER the video ── */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 10,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "env(safe-area-inset-top, 12px) 16px 12px",
-          background:
-            "linear-gradient(to bottom, rgba(0,0,0,0.50) 0%, transparent 100%)",
-        }}
-      >
+      {/* ── Top Bar ── */}
+      <div className="absolute top-0 inset-x-0 z-20 flex items-center justify-between p-4 bg-gradient-to-b from-black/70 to-transparent">
         <button
           onClick={onClose}
-          className="flex items-center gap-1.5 text-white/85 hover:text-white transition-colors text-sm font-medium py-1.5 px-3 rounded-full hover:bg-white/10 active:scale-95"
+          className="flex items-center gap-1.5 text-white/90 hover:text-white transition-colors text-xs font-semibold py-2 px-4 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/10"
         >
           <X className="w-4 h-4" />
           Cancel
         </button>
-        <div style={{ width: 80 }} />
+        <span className="text-white/80 text-xs font-medium tracking-wide hidden sm:block">
+          CardLens Camera Capture
+        </span>
       </div>
 
-      {/* ── Bottom HUD — floats OVER the video ── */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          zIndex: 10,
-          padding: `20px 24px max(env(safe-area-inset-bottom, 28px), 28px)`,
-          background:
-            "linear-gradient(to top, rgba(0,0,0,0.60) 0%, rgba(0,0,0,0.30) 60%, transparent 100%)",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-        }}
-      >
+      {/* ── Bottom HUD ── */}
+      <div className="absolute bottom-0 inset-x-0 z-20 p-6 pb-[max(env(safe-area-inset-bottom,24px),24px)] bg-gradient-to-t from-black/80 via-black/40 to-transparent flex flex-col items-center">
         {status === "live" && (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: "100%",
-              position: "relative",
-            }}
-          >
+          <div className="flex items-center justify-center w-full max-w-xs relative">
             <button
               onClick={switchCamera}
-              style={{ position: "absolute", left: "max(0px, calc(50% - 90px))" }}
-              className="w-12 h-12 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 active:scale-95 transition-all text-white/80 hover:text-white backdrop-blur-md border border-white/10"
+              className="absolute left-4 w-12 h-12 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 active:scale-95 transition-all text-white backdrop-blur-md border border-white/15"
               title="Switch camera"
             >
               <SwitchCamera className="w-5 h-5" />
@@ -286,12 +241,10 @@ function CameraModal({
             <button
               onClick={doCapture}
               aria-label="Capture"
-              className="relative w-[72px] h-[72px] rounded-full flex items-center justify-center transition-all duration-200 active:scale-92 bg-white/10 backdrop-blur-md border border-white/20"
+              className="w-18 h-18 rounded-full flex items-center justify-center bg-white/15 backdrop-blur-md border-2 border-white/30 active:scale-95 transition-all shadow-2xl"
             >
-              <div className="w-[54px] h-[54px] rounded-full bg-white shadow-xl transition-all duration-200" />
+              <div className="w-14 h-14 rounded-full bg-white shadow-xl" />
             </button>
-
-            <div style={{ position: "absolute", right: "max(0px, calc(50% - 90px))", width: 48, height: 48 }} />
           </div>
         )}
       </div>
@@ -330,7 +283,6 @@ export default function ScanPage() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) processFile(e.target.files[0]);
-    // reset so the same file can be re-selected
     e.target.value = "";
   };
 
@@ -348,14 +300,14 @@ export default function ScanPage() {
   const handleScan = async () => {
     if (!selectedFile) return;
     setIsScanning(true);
-    setScanProgress(10);
+    setScanProgress(15);
 
     const formData = new FormData();
     formData.append("image", selectedFile);
 
     const interval = setInterval(() => {
-      setScanProgress((p) => (p < 90 ? p + 10 : p));
-    }, 400);
+      setScanProgress((p) => (p < 90 ? p + 12 : p));
+    }, 350);
 
     try {
       const response = await fetch("/api/ocr", { method: "POST", body: formData });
@@ -375,7 +327,7 @@ export default function ScanPage() {
       clearInterval(interval);
       toast.error(
         error.message ||
-          "Unable to read this card. Check your connection and try again."
+        "Unable to read this card. Check your connection and try again."
       );
     } finally {
       setIsScanning(false);
@@ -391,7 +343,6 @@ export default function ScanPage() {
 
   return (
     <>
-      {/* Camera is portaled to document.body — escapes overflow:hidden on layout */}
       {isCameraOpen && (
         <CameraModal
           onCapture={handleCameraCapture}
@@ -400,25 +351,26 @@ export default function ScanPage() {
       )}
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-8 pb-24">
-        {/* ── Header ──────────────────────────────────────────────── */}
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center bg-primary/10 p-3 rounded-2xl mb-1">
-            <Scan className="w-7 h-7 text-primary" />
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+        {/* ── Page Header ──────────────────────────────────────────── */}
+        <div className="text-center space-y-2.5">
+          {/* <div className="inline-flex items-center gap-2 bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 px-3.5 py-1.5 rounded-full text-xs font-semibold shadow-sm">
+            <Scan className="w-3.5 h-3.5 text-blue-400 dark:text-blue-600" />
+            <span>Business Card Capture</span>
+          </div> */}
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground">
             Scan a Business Card
           </h1>
-          <p className="text-muted-foreground text-sm sm:text-base max-w-sm mx-auto">
-            Capture or upload a card to instantly extract and save contact info.
+          <p className="text-muted-foreground text-sm sm:text-base max-w-md mx-auto leading-relaxed">
+            Capture a business card and we'll extract the contact details for you.
           </p>
         </div>
 
-        {/* ── Drop zone ────────────────────────────────────────────── */}
+        {/* ── Upload & Scan Card Container ─────────────────────────── */}
         {!selectedFile ? (
           <div
             onDrop={handleDrop}
             onDragOver={(e) => e.preventDefault()}
-            className="group rounded-2xl border-2 border-dashed border-border hover:border-primary/50 bg-muted/20 hover:bg-primary/5 transition-all duration-200 cursor-pointer"
+            className="group relative rounded-3xl border-2 border-dashed border-slate-200 hover:border-slate-400 dark:border-slate-800 dark:hover:border-slate-600 bg-background hover:bg-slate-50/80 dark:hover:bg-slate-900/40 transition-all duration-300 cursor-pointer p-8 sm:p-12 text-center overflow-hidden shadow-sm"
             onClick={() => fileInputRef.current?.click()}
           >
             <input
@@ -429,39 +381,47 @@ export default function ScanPage() {
               onChange={handleFileChange}
             />
 
-            <div className="flex flex-col items-center py-14 px-6 text-center space-y-5">
+            {/* Corner guide indicators for business card frame */}
+            <div className="absolute top-4 left-4 w-5 h-5 border-t-2 border-l-2 border-slate-300 dark:border-slate-700 group-hover:border-slate-900 dark:group-hover:border-white transition-colors" />
+            <div className="absolute top-4 right-4 w-5 h-5 border-t-2 border-r-2 border-slate-300 dark:border-slate-700 group-hover:border-slate-900 dark:group-hover:border-white transition-colors" />
+            <div className="absolute bottom-4 left-4 w-5 h-5 border-b-2 border-l-2 border-slate-300 dark:border-slate-700 group-hover:border-slate-900 dark:group-hover:border-white transition-colors" />
+            <div className="absolute bottom-4 right-4 w-5 h-5 border-b-2 border-r-2 border-slate-300 dark:border-slate-700 group-hover:border-slate-900 dark:group-hover:border-white transition-colors" />
+
+            <div className="flex flex-col items-center space-y-6 max-w-md mx-auto">
               <div className="relative">
-                <div className="bg-background border shadow-sm p-4 rounded-2xl group-hover:shadow-md group-hover:border-primary/30 transition-all">
-                  <UploadCloud className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors" />
+                <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 shadow-sm group-hover:scale-105 transition-transform duration-200">
+                  <UploadCloud className="w-8 h-8 text-slate-700 dark:text-slate-300 group-hover:text-slate-950 dark:group-hover:text-white" />
                 </div>
-                <div className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center">
-                  <FileImage className="w-3 h-3" />
+                <div className="absolute -bottom-1 -right-1 bg-slate-950 text-white rounded-full p-1 shadow-md">
+                  <FileImage className="w-3.5 h-3.5" />
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <p className="font-semibold text-base">Drop your card image here</p>
-                <p className="text-sm text-muted-foreground">
-                  or click to browse · JPG, PNG, WEBP up to 10 MB
+              <div className="space-y-1.5">
+                <h3 className="font-bold text-lg text-foreground">
+                  Drop your business card here
+                </h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Upload an image or use your camera
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto pt-1">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full pt-2">
                 <Button
-                  size="sm"
-                  className="h-10 px-6 gap-2 w-full sm:w-auto"
+                  size="default"
+                  className="h-11 px-7 gap-2.5 w-full sm:w-auto font-semibold bg-slate-950 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 shadow-sm rounded-xl"
                   onClick={(e) => {
                     e.stopPropagation();
                     fileInputRef.current?.click();
                   }}
                 >
                   <UploadCloud className="w-4 h-4" />
-                  Upload Image
+                  Upload Card
                 </Button>
                 <Button
                   variant="outline"
-                  size="sm"
-                  className="h-10 px-6 gap-2 w-full sm:w-auto"
+                  size="default"
+                  className="h-11 px-7 gap-2.5 w-full sm:w-auto font-semibold rounded-xl border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800"
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsCameraOpen(true);
@@ -471,74 +431,90 @@ export default function ScanPage() {
                   Use Camera
                 </Button>
               </div>
+
+              <p className="text-[11px] font-medium text-muted-foreground/80 tracking-wide uppercase pt-2">
+                JPG, PNG or WEBP • Maximum 10 MB
+              </p>
             </div>
           </div>
         ) : (
-          /* ── Preview card ─────────────────────────────────────── */
-          <div className="rounded-2xl border bg-card shadow-sm overflow-hidden">
-            <div className="flex flex-col md:flex-row md:h-72">
-              {/* image */}
-              <div className="md:w-5/12 bg-slate-950 flex items-center justify-center p-4 min-h-[200px] md:min-h-0 shrink-0">
+          /* ── Preview Card & Processing State ──────────────────── */
+          <div className="rounded-3xl border border-border bg-card shadow-lg overflow-hidden">
+            <div className="flex flex-col md:flex-row md:h-80">
+              {/* Card Image Preview with Scanning Animation */}
+              <div className="md:w-5/12 bg-slate-950 flex items-center justify-center p-6 min-h-[220px] md:min-h-0 shrink-0 relative overflow-hidden">
                 {previewUrl && (
                   <img
                     src={previewUrl}
-                    alt="Business Card"
-                    className="max-h-full max-w-full object-contain rounded-lg shadow-xl"
+                    alt="Business Card Preview"
+                    className="max-h-full max-w-full object-contain rounded-xl shadow-2xl border border-slate-800"
                   />
                 )}
+                {/* Laser scan line sweep when scanning */}
+                {isScanning && <div className="animate-scanline" />}
               </div>
 
-              {/* info + actions */}
-              <div className="flex-1 p-6 flex flex-col justify-between gap-5">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <div className="bg-emerald-100 dark:bg-emerald-900/30 p-1.5 rounded-lg">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              {/* Status Details & Actions */}
+              <div className="flex-1 p-6 sm:p-8 flex flex-col justify-between gap-6 bg-background">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="bg-emerald-500/10 p-2 rounded-xl text-emerald-600 dark:text-emerald-400">
+                        <CheckCircle2 className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-base text-foreground">Image Loaded</h3>
+                        <p className="text-xs text-muted-foreground">{selectedFile.name}</p>
+                      </div>
                     </div>
-                    <h3 className="font-semibold text-base">Image Ready</h3>
+                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-muted text-muted-foreground">
+                      {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                    </span>
                   </div>
 
-                  <div className="bg-muted/50 rounded-lg px-3 py-2 text-sm divide-y divide-border/50">
-                    <div className="flex justify-between py-1.5">
-                      <span className="text-muted-foreground">File</span>
-                      <span className="font-medium text-foreground truncate max-w-[160px] text-right">
-                        {selectedFile.name}
-                      </span>
+                  {/* Processing Status Checklist */}
+                  {isScanning ? (
+                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 space-y-3">
+                      <div className="flex justify-between text-xs font-bold text-foreground">
+                        <span className="flex items-center gap-2">
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin text-blue-500" />
+                          Analyzing your card…
+                        </span>
+                        <span>{scanProgress}%</span>
+                      </div>
+                      <Progress value={scanProgress} className="h-2 rounded-full" />
+                      <div className="space-y-1 pt-1 text-xs text-muted-foreground">
+                        <p className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-medium">
+                          <span>✓</span> Image uploaded & validated
+                        </p>
+                        <p className="flex items-center gap-2 text-foreground font-medium">
+                          <span>●</span> Reading text and contact information...
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex justify-between py-1.5">
-                      <span className="text-muted-foreground">Size</span>
-                      <span className="font-medium text-foreground">
-                        {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                      </span>
+                  ) : (
+                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 text-xs text-muted-foreground leading-relaxed">
+                      Ready to process card details using server-side OCR engine.
                     </div>
-                  </div>
+                  )}
                 </div>
 
-                {isScanning && (
-                  <div className="space-y-1.5">
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span className="animate-pulse">Analyzing card…</span>
-                      <span>{scanProgress}%</span>
-                    </div>
-                    <Progress value={scanProgress} className="h-1.5" />
-                  </div>
-                )}
-
-                <div className="flex gap-2">
+                {/* Primary & Action Buttons */}
+                <div className="flex gap-2.5 pt-2">
                   <Button
                     onClick={handleScan}
                     disabled={isScanning}
-                    className="flex-1 h-10 gap-2"
+                    className="flex-1 h-11 text-xs font-bold gap-2 rounded-xl bg-slate-950 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950"
                   >
                     {isScanning ? (
                       <>
                         <RefreshCw className="w-4 h-4 animate-spin" />
-                        Scanning…
+                        Processing OCR…
                       </>
                     ) : (
                       <>
                         <Scan className="w-4 h-4" />
-                        Scan Card
+                        Scan & Extract Contact
                       </>
                     )}
                   </Button>
@@ -546,8 +522,8 @@ export default function ScanPage() {
                     variant="outline"
                     onClick={clearSelection}
                     disabled={isScanning}
-                    className="h-10 w-10"
-                    title="Remove image"
+                    className="h-11 w-11 rounded-xl p-0"
+                    title="Remove card"
                   >
                     <X className="w-4 h-4" />
                   </Button>
@@ -555,8 +531,8 @@ export default function ScanPage() {
                     variant="outline"
                     onClick={() => setIsCameraOpen(true)}
                     disabled={isScanning}
-                    className="h-10 w-10"
-                    title="Retake with camera"
+                    className="h-11 w-11 rounded-xl p-0"
+                    title="Retake camera capture"
                   >
                     <Camera className="w-4 h-4" />
                   </Button>
@@ -565,9 +541,6 @@ export default function ScanPage() {
             </div>
           </div>
         )}
-
-        {/* ── Feature cards ────────────────────────────────────────── */}
-
       </div>
 
       <OCRReviewModal
@@ -585,3 +558,4 @@ export default function ScanPage() {
     </>
   );
 }
+
