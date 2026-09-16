@@ -21,9 +21,9 @@ export default function Header() {
             <span className="text-base font-bold tracking-tight text-foreground font-sans">
               CardLens
             </span>
-            <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+            {/* <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
               Enterprise OCR
-            </span>
+            </span> */}
           </div>
         </div>
       </div>
