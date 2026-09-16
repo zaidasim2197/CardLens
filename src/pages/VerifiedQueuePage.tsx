@@ -316,7 +316,7 @@ export default function VerifiedQueuePage() {
           {/* Row 2: Dropdowns + Select All */}
           <div className="flex flex-wrap items-center gap-2">
             {/* City */}
-            <Select value={selectedCity} onValueChange={setSelectedCity}>
+            <Select value={selectedCity} onValueChange={(val) => val && setSelectedCity(val)}>
               <SelectTrigger
                 className={`h-9 w-auto min-w-[130px] max-w-[180px] text-xs font-medium bg-background border-border shadow-none focus:ring-primary/30 gap-1.5 ${
                   selectedCity !== "ALL"
@@ -338,7 +338,7 @@ export default function VerifiedQueuePage() {
             </Select>
 
             {/* Country */}
-            <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+            <Select value={selectedCountry} onValueChange={(val) => val && setSelectedCountry(val)}>
               <SelectTrigger
                 className={`h-9 w-auto min-w-[140px] max-w-[190px] text-xs font-medium bg-background border-border shadow-none focus:ring-primary/30 gap-1.5 ${
                   selectedCountry !== "ALL"
@@ -360,7 +360,7 @@ export default function VerifiedQueuePage() {
             </Select>
 
             {/* Sort */}
-            <Select value={sortBy} onValueChange={setSortBy}>
+            <Select value={sortBy} onValueChange={(val) => val && setSortBy(val)}>
               <SelectTrigger className="h-9 w-auto min-w-[150px] max-w-[190px] text-xs font-medium bg-background border-border shadow-none focus:ring-primary/30 gap-1.5">
                 <ArrowUpDown className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
                 <SelectValue placeholder="Sort: Newest" />
