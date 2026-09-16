@@ -103,15 +103,15 @@ export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess 
         <div className="flex flex-col lg:flex-row flex-1 overflow-hidden min-h-0 bg-slate-50/50">
           {/* Card Image Reference Panel */}
           {imageUrl && (
-            <div className="lg:w-5/12 p-4 md:p-6 bg-slate-950 flex flex-col justify-center items-center border-b lg:border-b-0 lg:border-r overflow-hidden min-h-[200px] lg:min-h-0 shrink-0">
-              <div className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5 self-start">
+            <div className="lg:w-5/12 p-4 md:p-6 bg-slate-100/70 dark:bg-slate-900/40 flex flex-col justify-center items-center border-b lg:border-b-0 lg:border-r border-border overflow-hidden min-h-[200px] lg:min-h-0 shrink-0">
+              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5 self-start">
                 <CreditCard className="w-3.5 h-3.5 text-primary" /> Scanned Card Reference
               </div>
               <div className="flex-1 flex items-center justify-center w-full overflow-hidden">
                 <img
                   src={imageUrl}
                   alt="Business Card Reference"
-                  className="max-w-full max-h-full object-contain rounded-lg shadow-2xl border border-slate-800"
+                  className="max-w-full max-h-full object-contain rounded-xl shadow-md border border-slate-200 dark:border-slate-800"
                 />
               </div>
             </div>

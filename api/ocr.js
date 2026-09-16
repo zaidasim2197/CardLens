@@ -213,14 +213,17 @@ function parseMultipartForm(body, contentType) {
         if (headerEnd === -1) continue;
 
         const headers = part.slice(0, headerEnd).toString("utf8");
-        const content = part.slice(headerEnd + 4);
+        let content = part.slice(headerEnd + 4);
+        if (content.length >= 2 && content[content.length - 2] === 13 && content[content.length - 1] === 10) {
+          content = content.slice(0, content.length - 2);
+        }
 
         if (
           headers.includes('name="image"') ||
           /filename="[^"]+"/.test(headers)
         ) {
           const mimeTypeMatch = headers.match(/Content-Type:\s*([^\r\n]+)/i);
-          const mime = mimeTypeMatch ? mimeTypeMatch[1].trim() : "image/jpeg";
+          const mimeType = mimeTypeMatch ? mimeTypeMatch[1].trim() : "image/jpeg";
           resolve({ fileBuffer: content, mimeType });
           return;
         }

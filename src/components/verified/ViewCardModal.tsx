@@ -63,15 +63,15 @@ export default function ViewCardModal({ isOpen, setIsOpen, record }: Props) {
 
         <div className="flex flex-col lg:flex-row flex-1 overflow-hidden min-h-0">
           {/* Card Image Display */}
-          <div className="lg:w-1/2 p-6 bg-slate-950 flex items-center justify-center relative min-h-[250px] lg:min-h-0 shrink-0">
+          <div className="lg:w-1/2 p-6 bg-slate-100/70 dark:bg-slate-900/40 flex items-center justify-center relative min-h-[250px] lg:min-h-0 shrink-0 border-b lg:border-b-0 lg:border-r border-border">
             {imageUrl ? (
               <img
                 src={imageUrl}
                 alt={vData.fullName || "Business Card"}
-                className="max-w-full max-h-full object-contain rounded-lg drop-shadow-2xl border border-slate-800"
+                className="max-w-full max-h-full object-contain rounded-xl shadow-md border border-slate-200 dark:border-slate-800"
               />
             ) : (
-              <div className="text-slate-400 text-sm">No image available</div>
+              <div className="text-muted-foreground text-sm">No image available</div>
             )}
           </div>
 

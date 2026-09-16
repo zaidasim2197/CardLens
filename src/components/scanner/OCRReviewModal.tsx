@@ -337,20 +337,20 @@ export default function OCRReviewModal({
               {/* Modal Body: Split view on Desktop */}
               <div className="flex flex-col lg:flex-row flex-1 overflow-hidden min-h-0 bg-slate-50/50">
                 {/* Left: Card Preview Panel */}
-                <div className="lg:w-5/12 p-4 md:p-6 bg-slate-950 flex flex-col justify-center items-center border-b lg:border-b-0 lg:border-r overflow-hidden min-h-[220px] lg:min-h-0 shrink-0 relative group">
+                <div className="lg:w-5/12 p-4 md:p-6 bg-slate-100/70 dark:bg-slate-900/40 flex flex-col justify-center items-center border-b lg:border-b-0 lg:border-r border-border overflow-hidden min-h-[220px] lg:min-h-0 shrink-0 relative group">
                   <div className="absolute inset-4 flex items-center justify-center">
                     <img
                       src={imageUrl}
                       alt="Business Card Preview"
-                      className="max-w-full max-h-full object-contain rounded-xl drop-shadow-2xl border border-slate-800"
+                      className="max-w-full max-h-full object-contain rounded-xl shadow-md border border-slate-200 dark:border-slate-800"
                     />
                   </div>
                   <button
                     type="button"
                     onClick={() => setIsZoomImageOpen(true)}
-                    className="absolute top-4 right-4 bg-black/60 hover:bg-black/80 text-white p-2 rounded-xl backdrop-blur-md transition-colors opacity-80 hover:opacity-100 flex items-center gap-1.5 text-xs font-medium"
+                    className="absolute top-4 right-4 bg-background/80 hover:bg-background text-foreground p-2 rounded-xl border border-border shadow-sm transition-colors opacity-80 hover:opacity-100 flex items-center gap-1.5 text-xs font-medium"
                   >
-                    <ZoomIn className="w-3.5 h-3.5" /> Full View
+                    <ZoomIn className="w-3.5 h-3.5 text-primary" /> Full View
                   </button>
                 </div>
 
@@ -466,7 +466,7 @@ export default function OCRReviewModal({
 
       {/* Zoom Image Dialog */}
       <Dialog open={isZoomImageOpen} onOpenChange={setIsZoomImageOpen}>
-        <DialogContent className="max-w-4xl p-2 bg-slate-950 border-slate-800">
+        <DialogContent className="max-w-4xl p-2 bg-background border-border">
           <div className="relative flex items-center justify-center max-h-[85vh] overflow-hidden">
             <img
               src={imageUrl}

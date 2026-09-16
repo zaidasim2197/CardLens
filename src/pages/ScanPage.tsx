@@ -6,7 +6,6 @@ import {
   X,
   RefreshCw,
   Scan,
-  FileImage,
   CheckCircle2,
   CameraOff,
   SwitchCamera,
@@ -442,12 +441,12 @@ export default function ScanPage() {
           <div className="rounded-3xl border border-border bg-card shadow-lg overflow-hidden">
             <div className="flex flex-col md:flex-row md:h-80">
               {/* Card Image Preview with Scanning Animation */}
-              <div className="md:w-5/12 bg-slate-950 flex items-center justify-center p-6 min-h-[220px] md:min-h-0 shrink-0 relative overflow-hidden">
+              <div className="md:w-5/12 bg-slate-100/70 dark:bg-slate-900/40 border-b md:border-b-0 md:border-r border-border flex items-center justify-center p-6 min-h-[220px] md:min-h-0 shrink-0 relative overflow-hidden">
                 {previewUrl && (
                   <img
                     src={previewUrl}
                     alt="Business Card Preview"
-                    className="max-h-full max-w-full object-contain rounded-xl shadow-2xl border border-slate-800"
+                    className="max-h-full max-w-full object-contain rounded-xl shadow-md border border-slate-200 dark:border-slate-800"
                   />
                 )}
                 {/* Laser scan line sweep when scanning */}
