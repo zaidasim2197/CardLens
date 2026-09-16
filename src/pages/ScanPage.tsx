@@ -392,9 +392,9 @@ export default function ScanPage() {
                 <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 shadow-sm group-hover:scale-105 transition-transform duration-200">
                   <UploadCloud className="w-8 h-8 text-slate-700 dark:text-slate-300 group-hover:text-slate-950 dark:group-hover:text-white" />
                 </div>
-                <div className="absolute -bottom-1 -right-1 bg-slate-950 text-white rounded-full p-1 shadow-md">
+                {/* <div className="absolute -bottom-1 -right-1 bg-slate-950 text-white rounded-full p-1 shadow-md">
                   <FileImage className="w-3.5 h-3.5" />
-                </div>
+                </div> */}
               </div>
 
               <div className="space-y-1.5">

@@ -11,7 +11,7 @@ export default function Sidebar() {
   return (
     <aside className="hidden md:flex flex-col w-64 border-r bg-card shadow-sm h-full shrink-0">
       <div className="p-6 pb-2">
-        <div className="flex items-center gap-2 text-primary font-bold text-xl tracking-tight">
+        <div className="flex items-center gap-2 text-primary font-bold text-xl tracking-tight font-heading">
           <div className="bg-primary/10 p-1.5 rounded-lg">
             <Camera className="w-5 h-5 text-primary" />
           </div>

@@ -18,7 +18,7 @@ export default function Header() {
         </div>
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
-            <span className="text-base font-bold tracking-tight text-foreground font-sans">
+            <span className="text-lg font-bold tracking-tight text-foreground font-heading">
               CardLens
             </span>
             {/* <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
