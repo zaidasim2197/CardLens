@@ -20,10 +20,11 @@ export default function MobileNav() {
               cn(
                 "flex items-center justify-center gap-2 w-full py-2 text-xs font-semibold rounded-full transition-all duration-200 mx-1",
                 isActive
-                  ? "bg-slate-950 text-white shadow-sm dark:bg-white dark:text-slate-950"
+                  ? "bg-[#007BC2] text-white shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               )
             }
+
           >
             <Icon className="w-4 h-4" />
             <span className="tracking-tight">{item.name}</span>

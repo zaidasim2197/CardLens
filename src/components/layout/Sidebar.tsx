@@ -1,6 +1,7 @@
 import { NavLink } from "react-router-dom";
-import { Scan, ListChecks, Camera } from "lucide-react";
+import { Scan, ListChecks } from "lucide-react";
 import { cn } from "@/lib/utils";
+
 
 const navItems = [
   { name: "Scan Card", to: "/", icon: Scan },
@@ -11,13 +12,15 @@ export default function Sidebar() {
   return (
     <aside className="hidden md:flex flex-col w-64 border-r bg-card shadow-sm h-full shrink-0">
       <div className="p-6 pb-2">
-        <div className="flex items-center gap-2 text-primary font-bold text-xl tracking-tight font-heading">
-          <div className="bg-primary/10 p-1.5 rounded-lg">
-            <Camera className="w-5 h-5 text-primary" />
-          </div>
-          CardLens
-        </div>
+        <NavLink to="/" className="flex items-center gap-2">
+          <img
+            src="/Picture1.png"
+            alt="Aventure Aviation"
+            className="h-9 w-auto object-contain"
+          />
+        </NavLink>
       </div>
+
       <div className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
         <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-2">
           Menu

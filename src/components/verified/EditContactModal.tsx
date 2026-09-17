@@ -210,13 +210,14 @@ export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess 
 
         {/* Footer */}
         <div className="p-4 border-t bg-muted/10 flex justify-end gap-3 shrink-0">
-          <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
+          <Button type="button" variant="outline" className="rounded-xl text-xs font-semibold" onClick={() => setIsOpen(false)}>
             <X className="w-4 h-4 mr-2" /> Cancel
           </Button>
-          <Button type="submit" form="edit-contact-form">
+          <Button type="submit" form="edit-contact-form" className="h-10 px-5 rounded-xl font-bold text-xs bg-[#007BC2] hover:bg-[#0064a0] text-white shadow-md shadow-[#007BC2]/20">
             <Save className="w-4 h-4 mr-2" /> Save Changes
           </Button>
         </div>
+
       </DialogContent>
     </Dialog>
   );

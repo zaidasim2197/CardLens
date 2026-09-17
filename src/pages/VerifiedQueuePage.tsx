@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
-  CheckSquare,
   Download,
   Search,
   Edit,
@@ -17,6 +16,7 @@ import {
   Phone,
   X,
 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -245,7 +245,7 @@ export default function VerifiedQueuePage() {
             Verified Contacts
           </h1>
           <p className="text-sm text-muted-foreground">
-            Review, filter, edit, and export your verified business card contacts.
+            Review, filter, edit and export your verified business card contacts.
           </p>
         </div>
 
@@ -255,26 +255,27 @@ export default function VerifiedQueuePage() {
             <Button
               variant="outline"
               size="sm"
-              className="h-9 text-sm"
+              className="h-9 text-xs sm:text-sm border-[#007BC2]/40 hover:bg-[#007BC2]/10 text-[#007BC2] font-semibold rounded-xl"
               onClick={() => handleExport(true)}
             >
-              <Download className="w-4 h-4 mr-1.5" />
+              <Download className="w-4 h-4 mr-1.5 text-[#007BC2]" />
               Export Selected
-              <span className="ml-1.5 bg-primary text-primary-foreground text-xs rounded-full px-1.5 py-0.5 leading-none font-bold">
+              <span className="ml-1.5 bg-[#007BC2] text-white text-xs rounded-full px-1.5 py-0.5 leading-none font-bold">
                 {selectedIds.size}
               </span>
             </Button>
           )}
           <Button
             size="sm"
-            className="h-9 text-sm"
+            className="h-9 text-xs sm:text-sm bg-[#007BC2] hover:bg-[#0064a0] text-white font-semibold rounded-xl shadow-xs"
             onClick={() => handleExport(false)}
           >
-            <Download className="w-4 h-4 mr-1.5" />
+            <Download className="w-4 h-4 mr-1.5 text-white" />
             Export to Excel
           </Button>
         </div>
       </div>
+
 
       {/* ── Table Container ──────────────────────────────────────── */}
       <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
@@ -316,20 +317,19 @@ export default function VerifiedQueuePage() {
           </div>
 
           {/* Row 2: Dropdowns + Select All */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 pt-1">
             {/* City */}
             <Select value={selectedCity} onValueChange={(val) => val && setSelectedCity(val)}>
               <SelectTrigger
-                className={`h-9 w-auto min-w-[130px] max-w-[180px] text-xs font-medium bg-background border-border shadow-none focus:ring-primary/30 gap-1.5 ${
-                  selectedCity !== "ALL"
-                    ? "border-primary/60 text-primary bg-primary/5"
-                    : ""
-                }`}
+                className={`h-9 w-auto min-w-[130px] text-xs font-semibold rounded-xl bg-background border-border transition-colors gap-1.5 ${selectedCity !== "ALL"
+                    ? "border-[#007BC2] text-[#007BC2] bg-[#007BC2]/10 font-bold"
+                    : "hover:border-[#007BC2]/50"
+                  }`}
               >
-                <MapPin className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
+                <MapPin className={`w-3.5 h-3.5 shrink-0 ${selectedCity !== "ALL" ? "text-[#007BC2]" : "text-muted-foreground"}`} />
                 <SelectValue placeholder="City: All" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent side="bottom" sideOffset={6} align="start" className="min-w-[160px]">
                 <SelectItem value="ALL">All Cities</SelectItem>
                 {availableCities.map((city) => (
                   <SelectItem key={city} value={city}>
@@ -342,16 +342,15 @@ export default function VerifiedQueuePage() {
             {/* Country */}
             <Select value={selectedCountry} onValueChange={(val) => val && setSelectedCountry(val)}>
               <SelectTrigger
-                className={`h-9 w-auto min-w-[140px] max-w-[190px] text-xs font-medium bg-background border-border shadow-none focus:ring-primary/30 gap-1.5 ${
-                  selectedCountry !== "ALL"
-                    ? "border-primary/60 text-primary bg-primary/5"
-                    : ""
-                }`}
+                className={`h-9 w-auto min-w-[140px] text-xs font-semibold rounded-xl bg-background border-border transition-colors gap-1.5 ${selectedCountry !== "ALL"
+                    ? "border-[#007BC2] text-[#007BC2] bg-[#007BC2]/10 font-bold"
+                    : "hover:border-[#007BC2]/50"
+                  }`}
               >
-                <ListFilter className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
+                <ListFilter className={`w-3.5 h-3.5 shrink-0 ${selectedCountry !== "ALL" ? "text-[#007BC2]" : "text-muted-foreground"}`} />
                 <SelectValue placeholder="Country: All" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent side="bottom" sideOffset={6} align="start" className="min-w-[180px]">
                 <SelectItem value="ALL">All Countries</SelectItem>
                 {availableCountries.map((country) => (
                   <SelectItem key={country} value={country}>
@@ -363,11 +362,11 @@ export default function VerifiedQueuePage() {
 
             {/* Sort */}
             <Select value={sortBy} onValueChange={(val) => val && setSortBy(val)}>
-              <SelectTrigger className="h-9 w-auto min-w-[150px] max-w-[190px] text-xs font-medium bg-background border-border shadow-none focus:ring-primary/30 gap-1.5">
+              <SelectTrigger className="h-9 w-auto min-w-[150px] text-xs font-semibold rounded-xl bg-background border-border hover:border-[#007BC2]/50 transition-colors gap-1.5">
                 <ArrowUpDown className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
                 <SelectValue placeholder="Sort: Newest" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent side="bottom" sideOffset={6} align="start" className="min-w-[170px]">
                 <SelectItem value="newest">Newest First</SelectItem>
                 <SelectItem value="oldest">Oldest First</SelectItem>
                 <SelectItem value="name_asc">Name A → Z</SelectItem>
@@ -376,11 +375,12 @@ export default function VerifiedQueuePage() {
               </SelectContent>
             </Select>
 
+
             {/* Divider */}
             <div className="h-6 w-px bg-border mx-1 hidden sm:block" />
 
             {/* Select All */}
-            <Button
+            {/* <Button
               variant={allSelected ? "secondary" : "ghost"}
               size="sm"
               onClick={handleSelectAll}
@@ -389,7 +389,7 @@ export default function VerifiedQueuePage() {
             >
               <CheckSquare className="w-3.5 h-3.5" />
               {allSelected ? "Deselect All" : "Select All"}
-            </Button>
+            </Button> */}
           </div>
         </div>
 
@@ -412,11 +412,12 @@ export default function VerifiedQueuePage() {
             {records.length === 0 ? (
               <Button
                 size="default"
-                className="mt-2 h-11 px-7 rounded-xl font-semibold text-xs bg-slate-950 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950"
+                className="mt-2 h-11 px-7 rounded-xl font-semibold text-xs bg-[#007BC2] hover:bg-[#0064a0] text-white shadow-md shadow-[#007BC2]/20"
                 onClick={() => navigate("/")}
               >
                 Scan Your First Card
               </Button>
+
             ) : (
               activeFilterCount > 0 && (
                 <Button
@@ -473,11 +474,10 @@ export default function VerifiedQueuePage() {
                     return (
                       <tr
                         key={record.id}
-                        className={`group transition-colors ${
-                          isSelected
-                            ? "bg-primary/5 hover:bg-primary/8"
-                            : "hover:bg-muted/40"
-                        }`}
+                        className={`group transition-colors ${isSelected
+                          ? "bg-primary/5 hover:bg-primary/8"
+                          : "hover:bg-muted/40"
+                          }`}
                       >
                         {/* Checkbox */}
                         <td className="px-5 py-4 text-center">
@@ -656,11 +656,10 @@ export default function VerifiedQueuePage() {
                   return (
                     <div
                       key={record.id}
-                      className={`rounded-xl border transition-all ${
-                        isSelected
-                          ? "border-primary/40 bg-primary/5 shadow-sm"
-                          : "border-border bg-card shadow-sm hover:shadow-md hover:border-border/80"
-                      }`}
+                      className={`rounded-xl border transition-all ${isSelected
+                        ? "border-primary/40 bg-primary/5 shadow-sm"
+                        : "border-border bg-card shadow-sm hover:shadow-md hover:border-border/80"
+                        }`}
                     >
                       {/* Card Header */}
                       <div className="px-4 pt-4 pb-3 flex items-start gap-3">

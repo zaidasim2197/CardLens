@@ -302,11 +302,12 @@ export default function OCRReviewModal({
               <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full">
                 <Button
                   size="default"
-                  className="w-full sm:w-1/2 font-semibold text-xs h-10 rounded-xl bg-slate-950 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950"
+                  className="w-full sm:w-1/2 font-semibold text-xs h-10 rounded-xl bg-[#007BC2] text-white hover:bg-[#0064a0] shadow-md shadow-[#007BC2]/20"
                   onClick={onSuccess}
                 >
                   Scan Another Card
                 </Button>
+
                 <Button
                   variant="outline"
                   size="default"
@@ -425,8 +426,9 @@ export default function OCRReviewModal({
                     type="submit"
                     form="ocr-review-form"
                     disabled={isSaving}
-                    className="h-10 px-6 rounded-xl font-bold text-xs bg-slate-950 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950"
+                    className="h-10 px-6 rounded-xl font-bold text-xs bg-[#007BC2] text-white hover:bg-[#0064a0] shadow-md shadow-[#007BC2]/20"
                   >
+
                     {isSaving ? (
                       <>
                         <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> Saving…

@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
+import { useNavigate } from "react-router-dom";
+import { useLiveQuery } from "dexie-react-hooks";
 import {
   Camera,
   UploadCloud,
@@ -9,11 +11,15 @@ import {
   CheckCircle2,
   CameraOff,
   SwitchCamera,
+  Users,
+  ArrowRight,
 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import OCRReviewModal from "@/components/scanner/OCRReviewModal";
+import { storageService } from "@/lib/db";
 
 // ─── Camera Modal (rendered into document.body via portal) ───────────────────
 function CameraModal({
@@ -170,15 +176,15 @@ function CameraModal({
       {/* ── Business Card Alignment Frame Overlay ── */}
       {status === "live" && (
         <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-6 z-10">
-          <div className="w-full max-w-sm aspect-[1.75/1] rounded-2xl border-2 border-white/60 relative shadow-[0_0_0_9999px_rgba(0,0,0,0.55)]">
+          <div className="w-full max-w-sm aspect-[1.75/1] rounded-2xl border-2 border-white/60 relative shadow-[0_0_0_9999px_rgba(0,0,0,0.65)]">
             {/* Corner focus brackets */}
-            <div className="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-blue-400 rounded-tl-lg" />
-            <div className="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-blue-400 rounded-tr-lg" />
-            <div className="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 border-blue-400 rounded-bl-lg" />
-            <div className="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 border-blue-400 rounded-br-lg" />
+            <div className="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-[#007BC2] rounded-tl-lg" />
+            <div className="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-[#007BC2] rounded-tr-lg" />
+            <div className="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 border-[#007BC2] rounded-bl-lg" />
+            <div className="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 border-[#007BC2] rounded-br-lg" />
 
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-white/70 text-xs font-semibold uppercase tracking-wider bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm">
+              <span className="text-white/90 text-xs font-semibold uppercase tracking-wider bg-black/50 px-3.5 py-1.5 rounded-full backdrop-blur-md border border-white/20">
                 Position Business Card Here
               </span>
             </div>
@@ -189,7 +195,7 @@ function CameraModal({
       {/* ── Loading state ── */}
       {status === "loading" && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white/70">
-          <div className="w-10 h-10 rounded-full border-2 border-white/20 border-t-white animate-spin" />
+          <div className="w-10 h-10 rounded-full border-2 border-white/20 border-t-[#007BC2] animate-spin" />
           <p className="text-sm font-medium">Initializing camera…</p>
         </div>
       )}
@@ -212,7 +218,7 @@ function CameraModal({
       )}
 
       {/* ── Top Bar ── */}
-      <div className="absolute top-0 inset-x-0 z-20 flex items-center justify-between p-4 bg-gradient-to-b from-black/70 to-transparent">
+      <div className="absolute top-0 inset-x-0 z-20 flex items-center justify-between p-4 bg-gradient-to-b from-black/80 to-transparent">
         <button
           onClick={onClose}
           className="flex items-center gap-1.5 text-white/90 hover:text-white transition-colors text-xs font-semibold py-2 px-4 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/10"
@@ -221,12 +227,12 @@ function CameraModal({
           Cancel
         </button>
         <span className="text-white/80 text-xs font-medium tracking-wide hidden sm:block">
-          CardLens Camera Capture
+          Aventure Aviation Camera Capture
         </span>
       </div>
 
       {/* ── Bottom HUD ── */}
-      <div className="absolute bottom-0 inset-x-0 z-20 p-6 pb-[max(env(safe-area-inset-bottom,24px),24px)] bg-gradient-to-t from-black/80 via-black/40 to-transparent flex flex-col items-center">
+      <div className="absolute bottom-0 inset-x-0 z-20 p-6 pb-[max(env(safe-area-inset-bottom,24px),24px)] bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col items-center">
         {status === "live" && (
           <div className="flex items-center justify-center w-full max-w-xs relative">
             <button
@@ -240,7 +246,7 @@ function CameraModal({
             <button
               onClick={doCapture}
               aria-label="Capture"
-              className="w-18 h-18 rounded-full flex items-center justify-center bg-white/15 backdrop-blur-md border-2 border-white/30 active:scale-95 transition-all shadow-2xl"
+              className="w-18 h-18 rounded-full flex items-center justify-center bg-white/15 backdrop-blur-md border-2 border-[#007BC2] active:scale-95 transition-all shadow-2xl"
             >
               <div className="w-14 h-14 rounded-full bg-white shadow-xl" />
             </button>
@@ -254,6 +260,7 @@ function CameraModal({
 
 // ─── Main ScanPage ────────────────────────────────────────────────────────────
 export default function ScanPage() {
+  const navigate = useNavigate();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
@@ -264,6 +271,9 @@ export default function ScanPage() {
   const [isCameraOpen, setIsCameraOpen] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Live query for verified contacts count
+  const verifiedContacts = useLiveQuery(() => storageService.getVerifiedContacts());
 
   const processFile = (file: File) => {
     const validTypes = ["image/jpeg", "image/png", "image/webp"];
@@ -349,99 +359,194 @@ export default function ScanPage() {
         />
       )}
 
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-8 pb-24">
-        {/* ── Page Header ──────────────────────────────────────────── */}
-        <div className="text-center space-y-2.5">
-          {/* <div className="inline-flex items-center gap-2 bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 px-3.5 py-1.5 rounded-full text-xs font-semibold shadow-sm">
-            <Scan className="w-3.5 h-3.5 text-blue-400 dark:text-blue-600" />
-            <span>Business Card Capture</span>
-          </div> */}
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground">
-            Scan a Business Card
-          </h1>
-          <p className="text-muted-foreground text-sm sm:text-base max-w-md mx-auto leading-relaxed">
-            Capture a business card and we'll extract the contact details for you.
-          </p>
-        </div>
+      {/* Hidden file input always available */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        className="hidden"
+        accept="image/jpeg,image/png,image/webp"
+        onChange={handleFileChange}
+      />
 
-        {/* ── Upload & Scan Card Container ─────────────────────────── */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 pb-24 space-y-10">
         {!selectedFile ? (
-          <div
-            onDrop={handleDrop}
-            onDragOver={(e) => e.preventDefault()}
-            className="group relative rounded-3xl border-2 border-dashed border-slate-200 hover:border-slate-400 dark:border-slate-800 dark:hover:border-slate-600 bg-background hover:bg-slate-50/80 dark:hover:bg-slate-900/40 transition-all duration-300 cursor-pointer p-8 sm:p-12 text-center overflow-hidden shadow-sm"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <input
-              ref={fileInputRef}
-              type="file"
-              className="hidden"
-              accept="image/jpeg,image/png,image/webp"
-              onChange={handleFileChange}
-            />
+          /* ── 1. PREMIUM AVENTURE AVIATION WELCOME LANDING SCREEN ── */
+          <div className="space-y-8 sm:space-y-10">
+            {/* Hero Header & Official Logo */}
+            <div className="text-center space-y-5">
+              {/* Eyebrow Badge */}
+              {/* <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-[#007BC2]/10 text-[#007BC2] border border-[#007BC2]/25 shadow-xs">
+                <span className="w-2 h-2 rounded-full bg-[#007BC2] animate-pulse" />
+                <span className="tracking-wide uppercase text-[11px] font-bold">
+                  Aventure Aviation • Enterprise Contact Capture
+                </span>
+              </div> */}
 
-            {/* Corner guide indicators for business card frame */}
-            <div className="absolute top-4 left-4 w-5 h-5 border-t-2 border-l-2 border-slate-300 dark:border-slate-700 group-hover:border-slate-900 dark:group-hover:border-white transition-colors" />
-            <div className="absolute top-4 right-4 w-5 h-5 border-t-2 border-r-2 border-slate-300 dark:border-slate-700 group-hover:border-slate-900 dark:group-hover:border-white transition-colors" />
-            <div className="absolute bottom-4 left-4 w-5 h-5 border-b-2 border-l-2 border-slate-300 dark:border-slate-700 group-hover:border-slate-900 dark:group-hover:border-white transition-colors" />
-            <div className="absolute bottom-4 right-4 w-5 h-5 border-b-2 border-r-2 border-slate-300 dark:border-slate-700 group-hover:border-slate-900 dark:group-hover:border-white transition-colors" />
+              {/* Official Aventure Aviation Logo Asset */}
+              {/* <div className="flex justify-center items-center py-2">
+                <img
+                  src="/Picture1.png"
+                  alt="Aventure Aviation"
+                  className="h-14 sm:h-20 md:h-24 w-auto object-contain max-w-[85vw] sm:max-w-md filter drop-shadow-xs transition-transform duration-300 hover:scale-102"
+                />
+              </div> */}
 
-            <div className="flex flex-col items-center space-y-6 max-w-md mx-auto">
-              <div className="relative">
-                <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 shadow-sm group-hover:scale-105 transition-transform duration-200">
-                  <UploadCloud className="w-8 h-8 text-slate-700 dark:text-slate-300 group-hover:text-slate-950 dark:group-hover:text-white" />
-                </div>
-                {/* <div className="absolute -bottom-1 -right-1 bg-slate-950 text-white rounded-full p-1 shadow-md">
-                  <FileImage className="w-3.5 h-3.5" />
-                </div> */}
-              </div>
-
-              <div className="space-y-1.5">
-                <h3 className="font-bold text-lg text-foreground">
-                  Drop your business card here
-                </h3>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  Upload an image or use your camera
+              {/* Hero Headings */}
+              <div className="space-y-3 max-w-3xl mx-auto">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.18]">
+                  Turn business cards into<br className="hidden sm:block" />{" "}
+                  <span className="text-[#007BC2] bg-gradient-to-r from-[#007BC2] to-[#2E3192] bg-clip-text text-transparent inline-block">
+                    verified contacts.
+                  </span>
+                </h1>
+                <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base md:text-lg max-w-3xl mx-auto leading-relaxed font-normal md:whitespace-nowrap">
+                  Scan or upload a business card to extract, review, and save verified contact details.
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full pt-2">
+            </div>
+
+            {/* Interactive Scanning Visual & Primary / Secondary CTAs Card */}
+            <div
+              onDrop={handleDrop}
+              onDragOver={(e) => e.preventDefault()}
+              className="relative rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 shadow-xl shadow-slate-200/50 dark:shadow-none p-6 sm:p-10 text-center overflow-hidden transition-all duration-300 hover:border-[#007BC2]/40 group"
+            >
+              {/* Subtle Aviation/Scanning Backdrop Gradients */}
+              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-[#007BC2]/5 via-transparent to-transparent opacity-60" />
+              <div className="absolute -right-16 -top-16 w-48 h-48 rounded-full bg-[#007BC2]/10 blur-3xl pointer-events-none" />
+              <div className="absolute -left-16 -bottom-16 w-48 h-48 rounded-full bg-[#2E3192]/10 blur-3xl pointer-events-none" />
+
+              {/* Business Card Scanning Frame Representation */}
+              <div className="relative max-w-sm mx-auto mb-8 p-5 sm:p-6 rounded-2xl border-2 border-dashed border-[#007BC2]/40 bg-slate-50/80 dark:bg-slate-950/60 shadow-inner group-hover:border-[#007BC2] transition-colors duration-300">
+                {/* Corner Bracket Reticles */}
+                <div className="absolute -top-1 -left-1 w-5 h-5 border-t-3 border-l-3 border-[#007BC2] rounded-tl-md" />
+                <div className="absolute -top-1 -right-1 w-5 h-5 border-t-3 border-r-3 border-[#007BC2] rounded-tr-md" />
+                <div className="absolute -bottom-1 -left-1 w-5 h-5 border-b-3 border-l-3 border-[#007BC2] rounded-bl-md" />
+                <div className="absolute -bottom-1 -right-1 w-5 h-5 border-b-3 border-r-3 border-[#007BC2] rounded-br-md" />
+
+                {/* Laser scan line animation */}
+                <div className="animate-scanline opacity-80" />
+
+                {/* Card Mockup Graphic */}
+                <div className="flex flex-col gap-2.5 p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm text-left">
+                  <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-full bg-[#007BC2]/15 text-[#007BC2] flex items-center justify-center font-bold text-xs">
+                        AA
+                      </div>
+                      <div>
+                        <div className="h-2.5 w-24 bg-slate-800 dark:bg-slate-200 rounded-full" />
+                        <div className="h-2 w-16 bg-slate-300 dark:bg-slate-700 rounded-full mt-1" />
+                      </div>
+                    </div>
+                    <div className="text-[10px] font-bold text-[#007BC2] uppercase tracking-wider bg-[#007BC2]/10 px-2 py-0.5 rounded-full">
+                      OCR Ready
+                    </div>
+                  </div>
+                  <div className="space-y-1.5 pt-0.5">
+                    <div className="h-2 w-36 bg-slate-300 dark:bg-slate-700 rounded-full" />
+                    <div className="h-2 w-28 bg-slate-200 dark:bg-slate-800 rounded-full" />
+                  </div>
+                </div>
+              </div>
+
+              {/* CTAs Action Buttons Container */}
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 w-full max-w-sm sm:max-w-md mx-auto relative z-10 pt-2">
+                {/* Primary Action: Scan Business Card */}
                 <Button
-                  size="default"
-                  className="h-11 px-7 gap-2.5 w-full sm:w-auto font-semibold bg-slate-950 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 shadow-sm rounded-xl"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    fileInputRef.current?.click();
-                  }}
+                  size="lg"
+                  className="w-full sm:flex-1 h-14 px-6 text-base sm:text-lg font-bold bg-[#007BC2] hover:bg-[#0064a0] active:scale-[0.98] text-white !rounded-2xl shadow-lg shadow-[#007BC2]/25 hover:shadow-xl hover:shadow-[#007BC2]/35 transition-all gap-3 border-0 flex items-center justify-center"
+                  onClick={() => setIsCameraOpen(true)}
                 >
-                  <UploadCloud className="w-4 h-4" />
-                  Upload Card
+                  <Camera className="w-5 h-5 text-white shrink-0" />
+                  <span>Scan Business Card</span>
                 </Button>
+
+                {/* Secondary Action: Upload Card */}
                 <Button
                   variant="outline"
-                  size="default"
-                  className="h-11 px-7 gap-2.5 w-full sm:w-auto font-semibold rounded-xl border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsCameraOpen(true);
-                  }}
+                  size="lg"
+                  className="w-full sm:flex-1 h-14 px-6 text-base sm:text-lg font-bold border-2 border-[#007BC2]/35 hover:border-[#007BC2] hover:bg-[#007BC2]/5 active:scale-[0.98] text-[#007BC2] dark:text-slate-100 !rounded-2xl transition-all gap-3 flex items-center justify-center bg-white dark:bg-slate-900 shadow-xs"
+                  onClick={() => fileInputRef.current?.click()}
                 >
-                  <Camera className="w-4 h-4" />
-                  Use Camera
+                  <UploadCloud className="w-5 h-5 text-[#007BC2] shrink-0" />
+                  <span>Upload Card</span>
                 </Button>
               </div>
 
-              <p className="text-[11px] font-medium text-muted-foreground/80 tracking-wide uppercase pt-2">
-                JPG, PNG or WEBP • Maximum 10 MB
+
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-4 font-medium">
+                Supports JPG, PNG or WEBP up to 10 MB. Drag & drop image anywhere above.
               </p>
             </div>
+
+            {/* Real Verified Contacts Summary */}
+            <div className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white/80 dark:bg-slate-900/60 p-4 sm:p-5 shadow-xs">
+              {verifiedContacts && verifiedContacts.length > 0 ? (
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+                  <div className="flex items-center gap-3 text-left w-full sm:w-auto min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                      <Users className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between sm:justify-start gap-2 w-full">
+                        <h4 className="font-bold text-sm sm:text-base text-slate-900 dark:text-slate-100 truncate">
+                          Verified Contacts
+                        </h4>
+                        <span className="shrink-0 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 whitespace-nowrap">
+                          {verifiedContacts.length} {verifiedContacts.length === 1 ? 'Saved' : 'Saved'}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 hidden sm:block">
+                        Access and export your extracted business contact queue anytime.
+                      </p>
+                    </div>
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate('/verified')}
+                    className="h-10 px-4 text-xs font-semibold rounded-xl border-slate-300 dark:border-slate-700 gap-1.5 shrink-0 hover:bg-[#007BC2]/10 hover:text-[#007BC2] hover:border-[#007BC2]/40 transition-colors w-full sm:w-auto"
+                  >
+                    View Contacts <ArrowRight className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 flex items-center justify-center shrink-0">
+                      <Users className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-xs sm:text-sm text-slate-800 dark:text-slate-200">
+                        No contacts saved yet
+                      </h4>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        Your verified contacts will appear here after your first scan.
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate('/verified')}
+                    className="text-xs font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                  >
+                    View Queue →
+                  </Button>
+                </div>
+              )}
+            </div>
+
           </div>
         ) : (
-          /* ── Preview Card & Processing State ──────────────────── */
-          <div className="rounded-3xl border border-border bg-card shadow-lg overflow-hidden">
+          /* ── 2. CARD LOADED & OCR PROCESSING WORKFLOW ── */
+          <div className="rounded-3xl border border-border bg-card shadow-xl overflow-hidden">
             <div className="flex flex-col md:flex-row md:h-80">
               {/* Card Image Preview with Scanning Animation */}
-              <div className="md:w-5/12 bg-slate-100/70 dark:bg-slate-900/40 border-b md:border-b-0 md:border-r border-border flex items-center justify-center p-6 min-h-[220px] md:min-h-0 shrink-0 relative overflow-hidden">
+              <div className="md:w-5/12 bg-slate-100/80 dark:bg-slate-900/50 border-b md:border-b-0 md:border-r border-border flex items-center justify-center p-6 min-h-[220px] md:min-h-0 shrink-0 relative overflow-hidden">
                 {previewUrl && (
                   <img
                     src={previewUrl}
@@ -462,7 +567,7 @@ export default function ScanPage() {
                         <CheckCircle2 className="w-4 h-4" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-base text-foreground">Image Loaded</h3>
+                        <h3 className="font-bold text-base text-foreground">Card Image Loaded</h3>
                         <p className="text-xs text-muted-foreground">{selectedFile.name}</p>
                       </div>
                     </div>
@@ -476,8 +581,8 @@ export default function ScanPage() {
                     <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 space-y-3">
                       <div className="flex justify-between text-xs font-bold text-foreground">
                         <span className="flex items-center gap-2">
-                          <RefreshCw className="w-3.5 h-3.5 animate-spin text-blue-500" />
-                          Analyzing your card…
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#007BC2]" />
+                          Analyzing business card…
                         </span>
                         <span>{scanProgress}%</span>
                       </div>
@@ -487,7 +592,7 @@ export default function ScanPage() {
                           <span>✓</span> Image uploaded & validated
                         </p>
                         <p className="flex items-center gap-2 text-foreground font-medium">
-                          <span>●</span> Reading text and contact information...
+                          <span>●</span> Extracting text & contact information...
                         </p>
                       </div>
                     </div>
@@ -503,7 +608,7 @@ export default function ScanPage() {
                   <Button
                     onClick={handleScan}
                     disabled={isScanning}
-                    className="flex-1 h-11 text-xs font-bold gap-2 rounded-xl bg-slate-950 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950"
+                    className="flex-1 h-11 text-xs font-bold gap-2 rounded-xl bg-[#007BC2] hover:bg-[#0064a0] text-white shadow-md shadow-[#007BC2]/20"
                   >
                     {isScanning ? (
                       <>
@@ -522,7 +627,7 @@ export default function ScanPage() {
                     onClick={clearSelection}
                     disabled={isScanning}
                     className="h-11 w-11 rounded-xl p-0"
-                    title="Remove card"
+                    title="Change card / Return to welcome screen"
                   >
                     <X className="w-4 h-4" />
                   </Button>
@@ -557,4 +662,5 @@ export default function ScanPage() {
     </>
   );
 }
+
 
