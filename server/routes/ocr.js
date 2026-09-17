@@ -1,7 +1,8 @@
+import { hasReadableContact, NO_CONTACT_MESSAGE } from "../../shared/contactValidation.mjs";
 import express from "express";
 import multer from "multer";
 import { performOCR } from "../services/ocrService.js";
-import { parseOCRText, getEmptyFields } from "../services/cardParser.js";
+import { parseOCRText } from "../services/cardParser.js";
 
 const router = express.Router();
 const upload = multer({
@@ -23,11 +24,10 @@ router.post("/", upload.single("image"), async (req, res) => {
 
     const ocrResult = await performOCR(req.file.buffer);
     
-    if (!ocrResult.rawText) {
-      return res.json({ rawText: "", parsed: getEmptyFields() });
+    const parsed = parseOCRText(ocrResult.rawText || "");
+    if (!hasReadableContact(ocrResult.rawText, parsed)) {
+      return res.status(422).json({ code: "NO_CONTACT_DETECTED", error: NO_CONTACT_MESSAGE });
     }
-
-    const parsed = parseOCRText(ocrResult.rawText);
 
     res.json({
       rawText: ocrResult.rawText,
@@ -40,3 +40,4 @@ router.post("/", upload.single("image"), async (req, res) => {
 });
 
 export default router;
+

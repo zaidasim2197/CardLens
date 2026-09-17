@@ -256,7 +256,7 @@ export default function OCRReviewModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className={savedRecord ? "max-w-md w-[92vw] p-6 sm:p-7 rounded-3xl border border-border shadow-2xl bg-background" : "w-[95vw] max-w-[95vw] sm:max-w-[90vw] lg:max-w-6xl max-h-[92vh] sm:max-h-[90vh] p-0 overflow-hidden flex flex-col bg-background rounded-2xl border shadow-2xl"}>
+        <DialogContent className={savedRecord ? "max-w-md w-[92vw] p-6 sm:p-7 rounded-3xl border border-border shadow-2xl bg-background" : "flex h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-[calc(100vw-1rem)] flex-col gap-0 overflow-hidden rounded-2xl border bg-background p-0 shadow-2xl sm:h-auto sm:max-h-[90dvh] sm:w-[90vw] sm:max-w-[90vw] lg:max-w-6xl"}>
           {/* ── SUCCESS STATE VIEW ──────────────────────────────────── */}
           {savedRecord ? (
             <div className="flex flex-col items-center text-center py-2">
@@ -322,7 +322,7 @@ export default function OCRReviewModal({
             /* ── REVIEW FORM VIEW ────────────────────────────────────── */
             <>
               {/* Header */}
-              <DialogHeader className="p-5 md:p-6 pb-4 border-b bg-slate-50/50 dark:bg-slate-900/50 shrink-0">
+              <DialogHeader className="shrink-0 border-b bg-slate-50/50 p-4 pb-3 dark:bg-slate-900/50 sm:p-5 sm:pb-4 md:p-6 md:pb-4">
                 <div className="pr-8">
                   <DialogTitle className="text-xl md:text-2xl font-bold tracking-tight">
                     Review Contact
@@ -334,27 +334,27 @@ export default function OCRReviewModal({
               </DialogHeader>
 
               {/* Modal Body: Split view on Desktop */}
-              <div className="flex flex-col lg:flex-row flex-1 overflow-hidden min-h-0 bg-slate-50/50">
+              <div className="flex min-h-0 flex-1 touch-pan-y flex-col overflow-y-auto overscroll-contain bg-slate-50/50 lg:flex-row lg:overflow-hidden">
                 {/* Left: Card Preview Panel */}
-                <div className="lg:w-5/12 p-4 md:p-6 bg-slate-100/70 dark:bg-slate-900/40 flex flex-col justify-center items-center border-b lg:border-b-0 lg:border-r border-border overflow-hidden min-h-[220px] lg:min-h-0 shrink-0 relative group">
-                  <div className="absolute inset-4 flex items-center justify-center">
+                <div className="group relative h-[190px] min-h-[190px] shrink-0 overflow-hidden border-b border-border bg-slate-100/70 p-3 dark:bg-slate-900/40 sm:h-[230px] sm:min-h-[230px] sm:p-4 lg:h-auto lg:min-h-0 lg:w-5/12 lg:border-b-0 lg:border-r lg:p-6">
+                  <div className="absolute inset-3 flex items-center justify-center sm:inset-4 lg:inset-6">
                     <img
                       src={imageUrl}
                       alt="Business Card Preview"
-                      className="max-w-full max-h-full object-contain rounded-xl shadow-md border border-slate-200 dark:border-slate-800"
+                      className="h-full w-full rounded-xl border border-slate-200 object-contain shadow-md dark:border-slate-800"
                     />
                   </div>
                   <button
                     type="button"
                     onClick={() => setIsZoomImageOpen(true)}
-                    className="absolute top-4 right-4 bg-background/80 hover:bg-background text-foreground p-2 rounded-xl border border-border shadow-sm transition-colors opacity-80 hover:opacity-100 flex items-center gap-1.5 text-xs font-medium"
+                    className="absolute right-4 top-4 flex items-center gap-1.5 rounded-xl border border-border bg-background/90 p-2 text-xs font-medium text-foreground opacity-90 shadow-sm backdrop-blur-sm transition-colors hover:bg-background hover:opacity-100"
                   >
                     <ZoomIn className="w-3.5 h-3.5 text-[#007BC2]" /> Full View
                   </button>
                 </div>
 
                 {/* Right: Editable Form Panel */}
-                <div className="lg:w-7/12 overflow-y-auto bg-background p-5 md:p-6 flex-1 space-y-6">
+                <div className="shrink-0 bg-background p-4 sm:p-5 md:p-6 lg:w-7/12 lg:flex-1 lg:shrink lg:overflow-y-auto">
                   <form
                     id="ocr-review-form"
                     onSubmit={handleSubmit(onSubmit)}
@@ -408,13 +408,13 @@ export default function OCRReviewModal({
               </div>
 
               {/* Footer Actions */}
-              <div className="p-4 border-t bg-slate-50/50 dark:bg-slate-900/50 flex items-center justify-between gap-3 shrink-0">
+              <div className="flex shrink-0 items-center justify-between gap-2 border-t bg-slate-50/95 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-md dark:bg-slate-900/95 sm:gap-3 sm:p-4">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setIsOpen(false)}
                   disabled={isSaving}
-                  className="h-10 px-4 rounded-xl text-xs font-semibold border-[#007BC2]/40 text-[#007BC2] bg-[#007BC2]/5 hover:bg-[#007BC2]/15 hover:border-[#007BC2] transition-all gap-1.5"
+                  className="h-10 rounded-xl border-[#007BC2]/40 bg-[#007BC2]/5 px-3 text-xs font-semibold text-[#007BC2] transition-all hover:border-[#007BC2] hover:bg-[#007BC2]/15 sm:px-4"
                 >
                   <X className="w-4 h-4 text-[#007BC2]" /> Cancel
                 </Button>
@@ -424,7 +424,7 @@ export default function OCRReviewModal({
                     type="submit"
                     form="ocr-review-form"
                     disabled={isSaving}
-                    className="h-10 px-6 rounded-xl font-bold text-xs bg-[#007BC2] text-white hover:bg-[#0064a0] shadow-md shadow-[#007BC2]/20"
+                    className="h-10 rounded-xl bg-[#007BC2] px-4 text-xs font-bold text-white shadow-md shadow-[#007BC2]/20 hover:bg-[#0064a0] sm:px-6"
                   >
 
                     {isSaving ? (

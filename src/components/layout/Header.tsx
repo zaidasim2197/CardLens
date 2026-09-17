@@ -9,7 +9,7 @@ const navItems = [
 
 export default function Header() {
   return (
-    <header className="h-16 flex items-center justify-between px-4 md:px-8 border-b border-border/80 bg-background/95 backdrop-blur-md shrink-0 sticky top-0 z-30">
+    <header className="fixed inset-x-0 top-0 z-40 flex h-16 shrink-0 items-center justify-between border-b border-border/80 bg-background/95 px-4 backdrop-blur-md md:sticky md:px-8">
       {/* Official Aventure Aviation Logo */}
       <NavLink to="/" className="flex items-center gap-3 shrink-0 py-1 hover:opacity-90 transition-opacity">
         <img

@@ -9,7 +9,7 @@ const navItems = [
 
 export default function MobileNav() {
   return (
-    <nav className="md:hidden flex items-center justify-around bg-background/95 backdrop-blur-md border-t border-border/80 shrink-0 h-16 px-4 pb-[env(safe-area-inset-bottom,0px)] sticky bottom-0 z-30">
+    <nav className="fixed inset-x-0 bottom-0 z-40 flex h-[calc(4rem+env(safe-area-inset-bottom,0px))] shrink-0 items-center justify-around border-t border-border/80 bg-background/95 px-4 pb-[env(safe-area-inset-bottom,0px)] backdrop-blur-md md:hidden">
       {navItems.map((item) => {
         const Icon = item.icon;
         return (

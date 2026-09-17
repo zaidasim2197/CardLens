@@ -1,3 +1,4 @@
+import { hasReadableContact, NO_CONTACT_MESSAGE } from "../../shared/contactValidation.mjs";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
@@ -268,6 +269,7 @@ export default function ScanPage() {
   const [ocrData, setOcrData] = useState<any>(null);
   const [rawText, setRawText] = useState("");
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [scanError, setScanError] = useState<string | null>(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -286,6 +288,7 @@ export default function ScanPage() {
       return;
     }
     if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setScanError(null);
     setSelectedFile(file);
     setPreviewUrl(URL.createObjectURL(file));
   };
@@ -308,6 +311,8 @@ export default function ScanPage() {
 
   const handleScan = async () => {
     if (!selectedFile) return;
+    setScanError(null);
+    setIsReviewModalOpen(false);
     setIsScanning(true);
     setScanProgress(15);
 
@@ -329,15 +334,15 @@ export default function ScanPage() {
       }
 
       const data = await response.json();
+      if (!hasReadableContact(data.rawText, data.parsed)) throw new Error(NO_CONTACT_MESSAGE);
       setOcrData(data.parsed);
       setRawText(data.rawText);
       setIsReviewModalOpen(true);
-    } catch (error: any) {
+    } catch (error: unknown) {
       clearInterval(interval);
-      toast.error(
-        error.message ||
-        "Unable to read this card. Check your connection and try again."
-      );
+      const message = error instanceof Error ? error.message : "Unable to read this card. Check your connection and try again.";
+      setScanError(message);
+      toast.error(message);
     } finally {
       setIsScanning(false);
       setTimeout(() => setScanProgress(0), 500);
@@ -345,6 +350,7 @@ export default function ScanPage() {
   };
 
   const clearSelection = () => {
+    setScanError(null);
     setSelectedFile(null);
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setPreviewUrl(null);
@@ -598,7 +604,7 @@ export default function ScanPage() {
                     </div>
                   ) : (
                     <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 text-xs text-muted-foreground leading-relaxed">
-                      Ready to process card details using server-side OCR engine.
+                      <span role={scanError ? "alert" : undefined} className={scanError ? "text-red-700 font-medium" : undefined}>{scanError || "Your card is ready. Extract the details, then review them before saving."}</span>
                     </div>
                   )}
                 </div>
@@ -662,5 +668,6 @@ export default function ScanPage() {
     </>
   );
 }
+
 
 

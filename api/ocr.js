@@ -1,7 +1,8 @@
+import { hasReadableContact, NO_CONTACT_MESSAGE } from "../shared/contactValidation.mjs";
 import axios from "axios";
 import FormData from "form-data";
 
-import { parseOCRText, getEmptyFields } from "../server/services/cardParser.js";
+import { parseOCRText } from "../server/services/cardParser.js";
 
 
 async function performOCR(imageBuffer) {
@@ -165,11 +166,10 @@ export default async function handler(req, res) {
 
     const ocrResult = await performOCR(imageBuffer);
 
-    if (!ocrResult.rawText) {
-      return res.json({ rawText: "", parsed: getEmptyFields() });
+    const parsed = parseOCRText(ocrResult.rawText || "");
+    if (!hasReadableContact(ocrResult.rawText, parsed)) {
+      return res.status(422).json({ code: "NO_CONTACT_DETECTED", error: NO_CONTACT_MESSAGE });
     }
-
-    const parsed = parseOCRText(ocrResult.rawText);
 
     return res.json({
       rawText: ocrResult.rawText,
@@ -188,3 +188,4 @@ export const config = {
     bodyParser: false,
   },
 };
+
