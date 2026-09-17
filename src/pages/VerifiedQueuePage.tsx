@@ -746,9 +746,9 @@ export default function VerifiedQueuePage() {
                           Edit
                         </Button>
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
-                          className="h-9 w-full min-w-0 gap-1 rounded-xl px-1 text-[11px] font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 sm:gap-1.5 sm:px-3 sm:text-xs"
+                          className="h-9 w-full min-w-0 gap-1 rounded-xl border-red-200 bg-red-50/40 px-1.5 text-[11px] font-semibold text-red-600 hover:border-red-300 hover:bg-red-50 dark:border-red-900/50 dark:bg-red-950/20 dark:hover:bg-red-950/40 sm:gap-1.5 sm:px-3 sm:text-xs"
                           onClick={() => {
                             setDeletingRecord(record);
                             setIsDeleteModalOpen(true);
@@ -801,12 +801,12 @@ export default function VerifiedQueuePage() {
               </DialogDescription>
             </div>
           </DialogHeader>
-          <DialogFooter className="gap-2 mt-2">
+          <DialogFooter className="mt-2 gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setIsDeleteModalOpen(false)}
-              className="h-9 px-4 text-xs font-semibold rounded-xl border-[#007BC2]/40 text-[#007BC2] bg-[#007BC2]/5 hover:bg-[#007BC2]/15 hover:border-[#007BC2]"
+              className="h-11 w-full rounded-xl border-[#007BC2]/40 bg-[#007BC2]/5 px-4 text-sm font-semibold text-[#007BC2] hover:border-[#007BC2] hover:bg-[#007BC2]/15 sm:w-auto sm:min-w-[110px]"
             >
               Cancel
             </Button>
@@ -814,6 +814,7 @@ export default function VerifiedQueuePage() {
               variant="destructive"
               size="sm"
               onClick={confirmDelete}
+              className="h-11 w-full rounded-xl px-4 text-sm font-semibold sm:w-auto sm:min-w-[130px]"
             >
               Delete Contact
             </Button>
