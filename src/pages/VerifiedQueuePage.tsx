@@ -239,41 +239,43 @@ export default function VerifiedQueuePage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6 pb-24">
       {/* ── Page Header ──────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-foreground">
             Verified Contacts
           </h1>
-          <p className="text-sm text-muted-foreground">
-            Review, filter, edit and export your verified business card contacts.
-          </p>
+
+          {/* Export buttons */}
+          <div className="flex items-center gap-2 shrink-0">
+            {selectedIds.size > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 sm:h-9 text-xs sm:text-sm border-[#007BC2]/40 hover:bg-[#007BC2]/10 text-[#007BC2] font-semibold rounded-xl px-2.5 sm:px-3"
+                onClick={() => handleExport(true)}
+              >
+                <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5 text-[#007BC2]" />
+                <span className="hidden xs:inline">Export Selected</span>
+                <span className="xs:hidden">Selected</span>
+                <span className="ml-1 sm:ml-1.5 bg-[#007BC2] text-white text-[10px] sm:text-xs rounded-full px-1.5 py-0.5 leading-none font-bold">
+                  {selectedIds.size}
+                </span>
+              </Button>
+            )}
+            <Button
+              size="sm"
+              className="h-8 sm:h-9 text-xs sm:text-sm bg-[#007BC2] hover:bg-[#0064a0] text-white font-semibold rounded-xl shadow-xs px-2.5 sm:px-3"
+              onClick={() => handleExport(false)}
+            >
+              <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5 text-white" />
+              Export to Excel
+            </Button>
+          </div>
         </div>
 
-        {/* Export buttons */}
-        <div className="flex items-center gap-2 shrink-0">
-          {selectedIds.size > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 text-xs sm:text-sm border-[#007BC2]/40 hover:bg-[#007BC2]/10 text-[#007BC2] font-semibold rounded-xl"
-              onClick={() => handleExport(true)}
-            >
-              <Download className="w-4 h-4 mr-1.5 text-[#007BC2]" />
-              Export Selected
-              <span className="ml-1.5 bg-[#007BC2] text-white text-xs rounded-full px-1.5 py-0.5 leading-none font-bold">
-                {selectedIds.size}
-              </span>
-            </Button>
-          )}
-          <Button
-            size="sm"
-            className="h-9 text-xs sm:text-sm bg-[#007BC2] hover:bg-[#0064a0] text-white font-semibold rounded-xl shadow-xs"
-            onClick={() => handleExport(false)}
-          >
-            <Download className="w-4 h-4 mr-1.5 text-white" />
-            Export to Excel
-          </Button>
-        </div>
+        <p className="text-xs sm:text-sm text-muted-foreground">
+          Review, filter, edit and export your verified business card contacts.
+        </p>
       </div>
 
 
