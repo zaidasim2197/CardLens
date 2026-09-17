@@ -93,12 +93,12 @@ export default function DuplicateWarningModal({
           </div>
         </div>
 
-        <DialogFooter className="flex flex-col sm:flex-row gap-2 mt-4">
+        <DialogFooter className="mt-4 flex flex-col gap-2 sm:flex-row">
           <Button
             variant="outline"
             size="sm"
             onClick={onClose}
-            className="w-full sm:w-auto text-xs font-semibold rounded-xl border-[#007BC2]/40 text-[#007BC2] bg-[#007BC2]/5 hover:bg-[#007BC2]/15 hover:border-[#007BC2]"
+            className="h-11 w-full rounded-xl border-[#007BC2]/40 bg-[#007BC2]/5 px-4 text-sm font-semibold text-[#007BC2] hover:border-[#007BC2] hover:bg-[#007BC2]/15 sm:h-11 sm:min-w-[105px] sm:w-auto"
           >
             Cancel
           </Button>
@@ -106,14 +106,14 @@ export default function DuplicateWarningModal({
             variant="outline"
             size="sm"
             onClick={onViewExisting}
-            className="w-full sm:w-auto text-xs font-semibold rounded-xl border-[#007BC2]/30 text-[#007BC2] hover:bg-[#007BC2]/10"
+            className="h-11 w-full rounded-xl border-[#007BC2]/30 px-4 text-sm font-semibold text-[#007BC2] hover:bg-[#007BC2]/10 sm:h-11 sm:min-w-[130px] sm:w-auto"
           >
             Review Existing
           </Button>
           <Button
             size="sm"
             onClick={onSaveAnyway}
-            className="w-full sm:w-auto text-xs font-bold rounded-xl bg-[#007BC2] hover:bg-[#0064a0] text-white shadow-xs"
+            className="h-11 w-full rounded-xl bg-[#007BC2] px-4 text-sm font-bold text-white shadow-xs hover:bg-[#0064a0] sm:h-11 sm:min-w-[120px] sm:w-auto"
           >
             Save Anyway
           </Button>

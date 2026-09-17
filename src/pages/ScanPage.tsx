@@ -623,17 +623,17 @@ export default function ScanPage() {
               {/* Status Details & Actions */}
               <div className="flex-1 p-6 sm:p-8 flex flex-col justify-between gap-6 bg-background">
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-2.5">
                       <div className="bg-emerald-500/10 p-2 rounded-xl text-emerald-600 dark:text-emerald-400">
                         <CheckCircle2 className="w-4 h-4" />
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <h3 className="font-bold text-base text-foreground">Card Image Loaded</h3>
-                        <p className="text-xs text-muted-foreground">{selectedFile.name}</p>
+                        <p className="break-all text-xs text-muted-foreground">{selectedFile.name}</p>
                       </div>
                     </div>
-                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-muted text-muted-foreground">
+                    <span className="inline-flex h-9 min-w-[78px] shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-muted px-3.5 text-xs font-semibold text-muted-foreground">
                       {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                     </span>
                   </div>
