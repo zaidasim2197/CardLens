@@ -21,6 +21,7 @@ import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import OCRReviewModal from "@/components/scanner/OCRReviewModal";
 import { storageService } from "@/lib/db";
+import { cropBusinessCardImage } from "@/lib/imageCrop";
 
 // ─── Camera Modal (rendered into document.body via portal) ───────────────────
 function CameraModal({
@@ -31,6 +32,7 @@ function CameraModal({
   onClose: () => void;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const cardFrameRef = useRef<HTMLDivElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const capturedRef = useRef(false);
 
@@ -116,21 +118,67 @@ function CameraModal({
 
   const doCapture = useCallback(() => {
     if (capturedRef.current) return;
-    capturedRef.current = true;
 
     const video = videoRef.current;
-    if (!video || !video.videoWidth) return;
+    const cardFrame = cardFrameRef.current;
+    if (!video || !video.videoWidth || !cardFrame) return;
+
+    capturedRef.current = true;
+
+    // The video uses object-fit: cover, so the visible video can extend beyond
+    // the viewport. Convert the exact on-screen guide rectangle back into the
+    // camera's native pixel coordinates and capture only that area.
+    const videoRect = video.getBoundingClientRect();
+    const frameRect = cardFrame.getBoundingClientRect();
+    const coverScale = Math.max(
+      videoRect.width / video.videoWidth,
+      videoRect.height / video.videoHeight
+    );
+    const renderedWidth = video.videoWidth * coverScale;
+    const renderedHeight = video.videoHeight * coverScale;
+    const renderedOffsetX = (videoRect.width - renderedWidth) / 2;
+    const renderedOffsetY = (videoRect.height - renderedHeight) / 2;
+
+    const requestedX =
+      (frameRect.left - videoRect.left - renderedOffsetX) / coverScale;
+    const requestedY =
+      (frameRect.top - videoRect.top - renderedOffsetY) / coverScale;
+    const sourceX = Math.max(0, requestedX);
+    const sourceY = Math.max(0, requestedY);
+    const sourceWidth = Math.min(
+      frameRect.width / coverScale,
+      video.videoWidth - sourceX
+    );
+    const sourceHeight = Math.min(
+      frameRect.height / coverScale,
+      video.videoHeight - sourceY
+    );
 
     const cap = document.createElement("canvas");
-    cap.width = video.videoWidth;
-    cap.height = video.videoHeight;
+    cap.width = Math.max(1, Math.round(sourceWidth));
+    cap.height = Math.max(1, Math.round(sourceHeight));
     const ctx = cap.getContext("2d")!;
-    ctx.drawImage(video, 0, 0);
+    ctx.drawImage(
+      video,
+      sourceX,
+      sourceY,
+      sourceWidth,
+      sourceHeight,
+      0,
+      0,
+      cap.width,
+      cap.height
+    );
 
     cap.toBlob(
       (blob) => {
-        if (!blob) return;
-        const file = new File([blob], `card-${Date.now()}.jpg`, {
+        if (!blob) {
+          capturedRef.current = false;
+          return;
+        }
+        // The "-cropped" suffix prevents the upload preparation step from
+        // trimming this exact camera-frame crop a second time.
+        const file = new File([blob], `card-${Date.now()}-cropped.jpg`, {
           type: "image/jpeg",
         });
         if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
@@ -177,7 +225,10 @@ function CameraModal({
       {/* ── Business Card Alignment Frame Overlay ── */}
       {status === "live" && (
         <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-6 z-10">
-          <div className="w-full max-w-sm aspect-[1.75/1] rounded-2xl border-2 border-white/60 relative shadow-[0_0_0_9999px_rgba(0,0,0,0.65)]">
+          <div
+            ref={cardFrameRef}
+            className="w-full max-w-sm aspect-[1.75/1] rounded-2xl border-2 border-white/60 relative shadow-[0_0_0_9999px_rgba(0,0,0,0.65)]"
+          >
             {/* Corner focus brackets */}
             <div className="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-[#007BC2] rounded-tl-lg" />
             <div className="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-[#007BC2] rounded-tr-lg" />
@@ -277,7 +328,7 @@ export default function ScanPage() {
   // Live query for verified contacts count
   const verifiedContacts = useLiveQuery(() => storageService.getVerifiedContacts());
 
-  const processFile = (file: File) => {
+  const processFile = async (file: File) => {
     const validTypes = ["image/jpeg", "image/png", "image/webp"];
     if (!validTypes.includes(file.type)) {
       toast.error("Invalid file type. Please upload a JPG, PNG, or WEBP image.");
@@ -287,26 +338,31 @@ export default function ScanPage() {
       toast.error("File size must be less than 10 MB.");
       return;
     }
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    setScanError(null);
-    setSelectedFile(file);
-    setPreviewUrl(URL.createObjectURL(file));
+    try {
+      const croppedFile = await cropBusinessCardImage(file, file.name);
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      setScanError(null);
+      setSelectedFile(croppedFile);
+      setPreviewUrl(URL.createObjectURL(croppedFile));
+    } catch {
+      toast.error("We could not prepare this image. Please try another photo.");
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) processFile(e.target.files[0]);
+    if (e.target.files?.[0]) void processFile(e.target.files[0]);
     e.target.value = "";
   };
 
   const handleCameraCapture = (file: File) => {
     setIsCameraOpen(false);
-    processFile(file);
+    void processFile(file);
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
-    if (file) processFile(file);
+    if (file) void processFile(file);
   };
 
   const handleScan = async () => {

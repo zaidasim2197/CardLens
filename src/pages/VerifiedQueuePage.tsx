@@ -237,26 +237,25 @@ export default function VerifiedQueuePage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6 pb-24">
+    <div className="mx-auto max-w-7xl space-y-5 px-0 py-4 pb-24 sm:space-y-6 sm:px-2 sm:py-6 lg:px-0">
       {/* ── Page Header ──────────────────────────────────────────── */}
       <div className="space-y-1.5">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-foreground">
             Verified Contacts
           </h1>
 
           {/* Export buttons */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex w-full items-center gap-2 sm:w-auto sm:shrink-0">
             {selectedIds.size > 0 && (
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8 sm:h-9 text-xs sm:text-sm border-[#007BC2]/40 hover:bg-[#007BC2]/10 text-[#007BC2] font-semibold rounded-xl px-2.5 sm:px-3"
+                className="h-10 min-w-0 flex-1 rounded-xl border-[#007BC2]/40 px-2.5 text-xs font-semibold text-[#007BC2] hover:bg-[#007BC2]/10 sm:h-9 sm:flex-none sm:px-3 sm:text-sm"
                 onClick={() => handleExport(true)}
               >
                 <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5 text-[#007BC2]" />
-                <span className="hidden xs:inline">Export Selected</span>
-                <span className="xs:hidden">Selected</span>
+                <span className="truncate">Export Selected</span>
                 <span className="ml-1 sm:ml-1.5 bg-[#007BC2] text-white text-[10px] sm:text-xs rounded-full px-1.5 py-0.5 leading-none font-bold">
                   {selectedIds.size}
                 </span>
@@ -264,11 +263,11 @@ export default function VerifiedQueuePage() {
             )}
             <Button
               size="sm"
-              className="h-8 sm:h-9 text-xs sm:text-sm bg-[#007BC2] hover:bg-[#0064a0] text-white font-semibold rounded-xl shadow-xs px-2.5 sm:px-3"
+              className="h-10 min-w-0 flex-1 rounded-xl bg-[#007BC2] px-2.5 text-xs font-semibold text-white shadow-xs hover:bg-[#0064a0] sm:h-9 sm:flex-none sm:px-3 sm:text-sm"
               onClick={() => handleExport(false)}
             >
               <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5 text-white" />
-              Export to Excel
+              <span className="truncate">Export to Excel</span>
             </Button>
           </div>
         </div>
@@ -283,13 +282,13 @@ export default function VerifiedQueuePage() {
       <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
 
         {/* Filter Toolbar */}
-        <div className="p-4 sm:p-5 border-b bg-muted/30 space-y-3">
+        <div className="space-y-3 border-b bg-muted/30 p-3 sm:p-5">
           {/* Row 1: Search + active filter badge */}
-          <div className="flex items-center gap-3">
-            <div className="relative flex-1">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="relative min-w-0 flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
               <Input
-                placeholder="Search by name, company, email, city…"
+                placeholder="Search contacts…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-9 h-10 bg-background border-border focus-visible:ring-primary/30 text-sm w-full"
@@ -307,7 +306,7 @@ export default function VerifiedQueuePage() {
             {activeFilterCount > 0 && (
               <button
                 onClick={resetFilters}
-                className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors shrink-0 h-10 px-3 rounded-md border bg-background hover:bg-muted"
+                className="flex h-10 shrink-0 items-center gap-1.5 rounded-lg border bg-background px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:px-3"
               >
                 <X className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Reset</span>
@@ -319,11 +318,11 @@ export default function VerifiedQueuePage() {
           </div>
 
           {/* Row 2: Dropdowns + Select All */}
-          <div className="flex flex-wrap items-center gap-2 pt-1">
+          <div className="grid grid-cols-2 gap-2 pt-1 min-[520px]:grid-cols-3">
             {/* City */}
             <Select value={selectedCity} onValueChange={(val) => val && setSelectedCity(val)}>
               <SelectTrigger
-                className={`h-9 w-auto min-w-[130px] text-xs font-semibold rounded-xl bg-background border-border transition-colors gap-1.5 ${selectedCity !== "ALL"
+                className={`h-10 w-full min-w-0 text-xs font-semibold rounded-xl bg-background border-border transition-colors gap-1.5 ${selectedCity !== "ALL"
                     ? "border-[#007BC2] text-[#007BC2] bg-[#007BC2]/10 font-bold"
                     : "hover:border-[#007BC2]/50"
                   }`}
@@ -344,7 +343,7 @@ export default function VerifiedQueuePage() {
             {/* Country */}
             <Select value={selectedCountry} onValueChange={(val) => val && setSelectedCountry(val)}>
               <SelectTrigger
-                className={`h-9 w-auto min-w-[140px] text-xs font-semibold rounded-xl bg-background border-border transition-colors gap-1.5 ${selectedCountry !== "ALL"
+                className={`h-10 w-full min-w-0 text-xs font-semibold rounded-xl bg-background border-border transition-colors gap-1.5 ${selectedCountry !== "ALL"
                     ? "border-[#007BC2] text-[#007BC2] bg-[#007BC2]/10 font-bold"
                     : "hover:border-[#007BC2]/50"
                   }`}
@@ -364,7 +363,7 @@ export default function VerifiedQueuePage() {
 
             {/* Sort */}
             <Select value={sortBy} onValueChange={(val) => val && setSortBy(val)}>
-              <SelectTrigger className="h-9 w-auto min-w-[150px] text-xs font-semibold rounded-xl bg-background border-border hover:border-[#007BC2]/50 transition-colors gap-1.5">
+              <SelectTrigger className="col-span-2 h-10 w-full min-w-0 gap-1.5 rounded-xl border-border bg-background text-xs font-semibold transition-colors hover:border-[#007BC2]/50 min-[520px]:col-span-1">
                 <ArrowUpDown className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
                 <SelectValue placeholder="Sort: Newest" />
               </SelectTrigger>
@@ -379,7 +378,7 @@ export default function VerifiedQueuePage() {
 
 
             {/* Divider */}
-            <div className="h-6 w-px bg-border mx-1 hidden sm:block" />
+            <div className="hidden" />
 
             {/* Select All */}
             {/* <Button
@@ -631,7 +630,7 @@ export default function VerifiedQueuePage() {
             {/* ── Mobile / Tablet Cards ────────────────────────────── */}
             <div className="lg:hidden">
               {/* Mobile Select All bar */}
-              <div className="px-4 py-2.5 border-b bg-muted/20 flex items-center justify-between">
+              <div className="flex items-center justify-between gap-3 border-b bg-muted/20 px-3 py-2.5 sm:px-4">
                 <button
                   onClick={handleSelectAll}
                   className="flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
@@ -648,7 +647,7 @@ export default function VerifiedQueuePage() {
                 </span>
               </div>
 
-              <div className="p-4 space-y-3">
+              <div className="space-y-3 p-3 sm:p-4">
                 {filteredRecords.map((record: ContactRecord) => {
                   const v = record.verifiedData;
                   const location = [v.city, v.country]
@@ -664,7 +663,7 @@ export default function VerifiedQueuePage() {
                         }`}
                     >
                       {/* Card Header */}
-                      <div className="px-4 pt-4 pb-3 flex items-start gap-3">
+                      <div className="flex items-start gap-2.5 px-3 pb-3 pt-3 sm:gap-3 sm:px-4 sm:pt-4">
                         <div className="mt-0.5">
                           <Checkbox
                             checked={isSelected}
@@ -688,15 +687,10 @@ export default function VerifiedQueuePage() {
                             </div>
                           )}
                         </div>
-                        {location && (
-                          <span className="text-[10px] font-semibold shrink-0 ml-auto bg-secondary text-secondary-foreground px-2 py-0.5 rounded-full">
-                            {location}
-                          </span>
-                        )}
                       </div>
 
                       {/* Card Body */}
-                      <div className="px-4 pb-3 space-y-2">
+                      <div className="space-y-2 px-3 pb-3 sm:px-4">
                         {v.companyName && (
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             <Building2 className="w-3.5 h-3.5 shrink-0" />
@@ -717,14 +711,20 @@ export default function VerifiedQueuePage() {
                             <span>{v.phone}</span>
                           </div>
                         )}
+                        {location && (
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <MapPin className="h-3.5 w-3.5 shrink-0" />
+                            <span className="truncate">{location}</span>
+                          </div>
+                        )}
                       </div>
 
                       {/* Card Footer Actions */}
-                      <div className="px-4 py-3 border-t border-border/60 flex items-center justify-end gap-2">
+                      <div className="grid grid-cols-3 gap-1.5 border-t border-border/60 px-3 py-3 sm:gap-2 sm:px-4">
                         <Button
                           variant="outline"
                           size="sm"
-                          className="h-8 px-3 text-xs font-semibold rounded-xl border-[#007BC2]/30 text-[#007BC2] bg-[#007BC2]/5 hover:bg-[#007BC2]/15 gap-1.5"
+                          className="h-9 w-full min-w-0 gap-1 rounded-xl border-[#007BC2]/30 bg-[#007BC2]/5 px-1.5 text-[11px] font-semibold text-[#007BC2] hover:bg-[#007BC2]/15 sm:gap-1.5 sm:px-3 sm:text-xs"
                           onClick={() => {
                             setViewingRecord(record);
                             setIsViewModalOpen(true);
@@ -736,7 +736,7 @@ export default function VerifiedQueuePage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="h-8 px-3 text-xs font-semibold rounded-xl border-[#007BC2]/30 text-[#007BC2] bg-[#007BC2]/5 hover:bg-[#007BC2]/15 gap-1.5"
+                          className="h-9 w-full min-w-0 gap-1 rounded-xl border-[#007BC2]/30 bg-[#007BC2]/5 px-1.5 text-[11px] font-semibold text-[#007BC2] hover:bg-[#007BC2]/15 sm:gap-1.5 sm:px-3 sm:text-xs"
                           onClick={() => {
                             setEditingRecord(record);
                             setIsEditModalOpen(true);
@@ -748,7 +748,7 @@ export default function VerifiedQueuePage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-8 px-3 text-xs font-semibold rounded-xl text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 gap-1.5"
+                          className="h-9 w-full min-w-0 gap-1 rounded-xl px-1 text-[11px] font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 sm:gap-1.5 sm:px-3 sm:text-xs"
                           onClick={() => {
                             setDeletingRecord(record);
                             setIsDeleteModalOpen(true);

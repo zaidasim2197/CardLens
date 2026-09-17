@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { storageService } from "@/lib/db";
+import { cropBusinessCardImage } from "@/lib/imageCrop";
 import type { ContactRecord, OCRData } from "@/types";
 
 interface Props {
@@ -18,6 +19,7 @@ interface Props {
 
 export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess }: Props) {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [croppedImage, setCroppedImage] = useState<File | null>(null);
 
   const { register, handleSubmit, reset } = useForm<OCRData>({
     defaultValues: record?.verifiedData || {
@@ -36,18 +38,37 @@ export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess 
   });
 
   useEffect(() => {
+    let cancelled = false;
+    let objectUrl: string | null = null;
+
     if (isOpen && record) {
       reset(record.verifiedData);
+      setImageUrl(null);
+      setCroppedImage(null);
       if (record.originalImage) {
-        const url = URL.createObjectURL(record.originalImage);
-        setImageUrl(url);
-        return () => {
-          URL.revokeObjectURL(url);
-        };
+        void cropBusinessCardImage(record.originalImage, record.originalFileName)
+          .then((cropped) => {
+            if (cancelled) return;
+            objectUrl = URL.createObjectURL(cropped);
+            setCroppedImage(cropped);
+            setImageUrl(objectUrl);
+          })
+          .catch(() => {
+            if (cancelled) return;
+            objectUrl = URL.createObjectURL(record.originalImage);
+            setCroppedImage(null);
+            setImageUrl(objectUrl);
+          });
       } else {
+        setCroppedImage(null);
         setImageUrl(null);
       }
     }
+
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
   }, [isOpen, record, reset]);
 
   if (!record) return null;
@@ -70,7 +91,13 @@ export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess 
 
       await storageService.updateRecord(record.id, {
         verifiedData: updatedVerifiedData,
-        verifiedAt: new Date().toISOString()
+        verifiedAt: new Date().toISOString(),
+        ...(croppedImage
+          ? {
+              originalImage: croppedImage,
+              originalFileName: croppedImage.name,
+            }
+          : {}),
       });
 
       toast.success("Contact details updated successfully.");
@@ -83,9 +110,9 @@ export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess 
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="w-[95vw] sm:max-w-5xl max-h-[92vh] overflow-hidden flex flex-col p-0 bg-background shadow-2xl rounded-2xl border">
+      <DialogContent className="flex h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-[calc(100vw-1rem)] flex-col gap-0 overflow-hidden rounded-2xl border bg-background p-0 shadow-2xl sm:h-auto sm:max-h-[90dvh] sm:w-[90vw] sm:max-w-5xl">
         {/* Header */}
-        <DialogHeader className="p-5 md:p-6 pb-4 border-b bg-slate-50/50 dark:bg-slate-900/50 shrink-0">
+        <DialogHeader className="shrink-0 border-b bg-slate-50/50 p-4 pb-3 dark:bg-slate-900/50 sm:p-5 sm:pb-4 md:p-6 md:pb-4">
           <div className="flex items-center gap-3 pr-8">
             <div className="bg-[#007BC2]/10 p-2.5 rounded-xl text-[#007BC2] shrink-0">
               <UserCheck className="w-5 h-5" />
@@ -100,25 +127,25 @@ export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess 
         </DialogHeader>
 
         {/* Modal Body: Split view on Desktop */}
-        <div className="flex flex-col lg:flex-row flex-1 overflow-hidden min-h-0 bg-slate-50/50">
+        <div className="flex min-h-0 flex-1 touch-pan-y flex-col overflow-y-auto overscroll-contain bg-slate-50/50 lg:flex-row lg:overflow-hidden">
           {/* Card Image Reference Panel */}
           {imageUrl && (
-            <div className="lg:w-5/12 p-4 md:p-6 bg-slate-100/70 dark:bg-slate-900/40 flex flex-col justify-center items-center border-b lg:border-b-0 lg:border-r border-border overflow-hidden min-h-[200px] lg:min-h-0 shrink-0">
-              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5 self-start">
+            <div className="flex h-[190px] min-h-[190px] shrink-0 flex-col overflow-hidden border-b border-border bg-slate-100/70 p-3 dark:bg-slate-900/40 sm:h-[230px] sm:min-h-[230px] sm:p-4 lg:h-auto lg:min-h-0 lg:w-5/12 lg:border-b-0 lg:border-r lg:p-6">
+              <div className="mb-2 flex shrink-0 items-center gap-1.5 self-start text-[10px] font-semibold uppercase tracking-wider text-muted-foreground sm:mb-3 sm:text-xs">
                 <CreditCard className="w-3.5 h-3.5 text-[#007BC2]" /> Scanned Card Reference
               </div>
-              <div className="flex-1 flex items-center justify-center w-full overflow-hidden">
+              <div className="flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden rounded-xl">
                 <img
                   src={imageUrl}
                   alt="Business Card Reference"
-                  className="max-w-full max-h-full object-contain rounded-xl shadow-md border border-slate-200 dark:border-slate-800"
+                  className="h-full w-full rounded-xl border border-slate-200 object-contain shadow-md dark:border-slate-800"
                 />
               </div>
             </div>
           )}
 
           {/* Form Panel */}
-          <div className={`overflow-y-auto p-5 md:p-6 bg-background flex-1 ${!imageUrl ? 'w-full' : ''}`}>
+          <div className={`shrink-0 bg-background p-4 sm:p-5 md:p-6 lg:flex-1 lg:shrink lg:overflow-y-auto ${!imageUrl ? 'w-full' : 'lg:w-7/12'}`}>
             <form id="edit-contact-form" onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {/* Identity Group */}
               <div className="space-y-4">
@@ -209,7 +236,7 @@ export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess 
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t bg-slate-50/50 dark:bg-slate-900/50 flex justify-end gap-3 shrink-0">
+        <div className="flex shrink-0 justify-end gap-2 border-t bg-slate-50/95 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-md dark:bg-slate-900/95 sm:gap-3 sm:p-4">
           <Button
             type="button"
             variant="outline"
