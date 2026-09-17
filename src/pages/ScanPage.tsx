@@ -508,9 +508,9 @@ export default function ScanPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => navigate('/verified')}
-                    className="h-10 px-4 text-xs font-semibold rounded-xl border-slate-300 dark:border-slate-700 gap-1.5 shrink-0 hover:bg-[#007BC2]/10 hover:text-[#007BC2] hover:border-[#007BC2]/40 transition-colors w-full sm:w-auto"
+                    className="h-9 px-3.5 text-xs font-semibold rounded-xl border-[#007BC2]/40 text-[#007BC2] bg-[#007BC2]/5 hover:bg-[#007BC2]/15 hover:border-[#007BC2] transition-all gap-1.5 shrink-0 w-full sm:w-auto"
                   >
-                    View Contacts <ArrowRight className="w-3.5 h-3.5" />
+                    View Contacts <ArrowRight className="w-3.5 h-3.5 text-[#007BC2]" />
                   </Button>
                 </div>
               ) : (
@@ -529,12 +529,12 @@ export default function ScanPage() {
                     </div>
                   </div>
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
                     onClick={() => navigate('/verified')}
-                    className="text-xs font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                    className="h-9 px-3.5 text-xs font-semibold rounded-xl border-[#007BC2]/40 text-[#007BC2] bg-[#007BC2]/5 hover:bg-[#007BC2]/15 hover:border-[#007BC2] transition-all gap-1.5 shrink-0"
                   >
-                    View Queue →
+                    View Queue <ArrowRight className="w-3.5 h-3.5 text-[#007BC2]" />
                   </Button>
                 </div>
               )}
