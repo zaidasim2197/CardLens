@@ -56,7 +56,7 @@ export default function DuplicateWarningModal({
               Existing Saved Contact
             </span>
             <span className="text-[11px] text-muted-foreground">
-              Saved {new Date(existingContact.createdAt).toLocaleDateString()}
+              Saved {new Date(existingContact.createdAt).toLocaleDateString()} at {new Date(existingContact.createdAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
             </span>
           </div>
 
@@ -94,21 +94,26 @@ export default function DuplicateWarningModal({
         </div>
 
         <DialogFooter className="flex flex-col sm:flex-row gap-2 mt-4">
-          <Button variant="outline" size="sm" onClick={onClose} className="w-full sm:w-auto text-xs">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onClose}
+            className="w-full sm:w-auto text-xs font-semibold rounded-xl border-[#007BC2]/40 text-[#007BC2] bg-[#007BC2]/5 hover:bg-[#007BC2]/15 hover:border-[#007BC2]"
+          >
             Cancel
           </Button>
           <Button
-            variant="secondary"
+            variant="outline"
             size="sm"
             onClick={onViewExisting}
-            className="w-full sm:w-auto text-xs bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700"
+            className="w-full sm:w-auto text-xs font-semibold rounded-xl border-[#007BC2]/30 text-[#007BC2] hover:bg-[#007BC2]/10"
           >
             Review Existing
           </Button>
           <Button
             size="sm"
             onClick={onSaveAnyway}
-            className="w-full sm:w-auto text-xs font-semibold bg-slate-950 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950"
+            className="w-full sm:w-auto text-xs font-bold rounded-xl bg-[#007BC2] hover:bg-[#0064a0] text-white shadow-xs"
           >
             Save Anyway
           </Button>

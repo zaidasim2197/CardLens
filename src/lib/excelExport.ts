@@ -15,15 +15,7 @@ export function exportToExcel(records: ContactRecord[], filename: string) {
     "City": record.verifiedData.city,
     "Country": record.verifiedData.country,
     "Notes": record.verifiedData.notes,
-    
-    "OCR Full Name": record.ocrData.fullName,
-    "OCR Company": record.ocrData.companyName,
-    "OCR Email": record.ocrData.email,
-    "OCR Phone": record.ocrData.phone,
-    "OCR Address": record.ocrData.address,
-    
     "Verification Status": record.status,
-    
     "Scanned At": new Date(record.createdAt).toLocaleString(),
     "Verified At": record.verifiedAt ? new Date(record.verifiedAt).toLocaleString() : "N/A",
   }));
@@ -33,18 +25,20 @@ export function exportToExcel(records: ContactRecord[], filename: string) {
   // Set column widths
   const wscols = [
     { wch: 36 }, // Record ID
-    { wch: 20 }, // Name
-    { wch: 20 }, // Title
-    { wch: 25 }, // Company
+    { wch: 22 }, // Full Name
+    { wch: 22 }, // Job Title
+    { wch: 25 }, // Company Name
     { wch: 30 }, // Email
-    { wch: 15 }, // Phone
-    { wch: 15 }, // Alt Phone
+    { wch: 18 }, // Phone
+    { wch: 18 }, // Alternate Phone
     { wch: 25 }, // Website
-    { wch: 30 }, // Address
-    { wch: 15 }, // City
-    { wch: 15 }, // Country
-    { wch: 40 }, // Notes
-    // ... rest can be auto or defaults
+    { wch: 32 }, // Address
+    { wch: 16 }, // City
+    { wch: 16 }, // Country
+    { wch: 35 }, // Notes
+    { wch: 18 }, // Verification Status
+    { wch: 22 }, // Scanned At
+    { wch: 22 }, // Verified At
   ];
   worksheet["!cols"] = wscols;
 

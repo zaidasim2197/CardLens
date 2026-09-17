@@ -189,21 +189,17 @@ export default function OCRReviewModal({
     return false;
   };
 
-  const Field = ({
-    label,
-    name,
-    type = "text",
-  }: {
-    label: string;
-    name: keyof FormData;
-    type?: string;
-  }) => {
+  const renderField = (
+    label: string,
+    name: keyof FormData,
+    type = "text"
+  ) => {
     const isEdited = Boolean(dirtyFields[name]);
     const currentValue = (formValues as any)[name];
     const needsVerification = shouldFlagForVerification(name, currentValue);
 
     return (
-      <div className="space-y-1.5">
+      <div key={name} className="space-y-1.5">
         <div className="flex justify-between items-center flex-wrap gap-1">
           <Label htmlFor={name} className="font-semibold text-slate-900 dark:text-slate-100 text-xs sm:text-sm">
             {label}
@@ -311,14 +307,14 @@ export default function OCRReviewModal({
                 <Button
                   variant="outline"
                   size="default"
-                  className="w-full sm:w-1/2 font-semibold text-xs h-10 rounded-xl gap-1.5 border-border"
+                  className="w-full sm:w-1/2 font-semibold text-xs h-10 rounded-xl gap-1.5 border-[#007BC2]/40 text-[#007BC2] bg-[#007BC2]/5 hover:bg-[#007BC2]/15 hover:border-[#007BC2] transition-all"
                   onClick={() => {
                     setIsOpen(false);
                     onSuccess();
                     navigate("/verified");
                   }}
                 >
-                  View Contacts <ArrowRight className="w-3.5 h-3.5" />
+                  View Contacts <ArrowRight className="w-3.5 h-3.5 text-[#007BC2]" />
                 </Button>
               </div>
             </div>
@@ -326,13 +322,15 @@ export default function OCRReviewModal({
             /* ── REVIEW FORM VIEW ────────────────────────────────────── */
             <>
               {/* Header */}
-              <DialogHeader className="p-5 md:p-6 pb-4 border-b bg-muted/20 shrink-0">
-                <DialogTitle className="text-xl md:text-2xl font-bold tracking-tight">
-                  Review Contact
-                </DialogTitle>
-                <DialogDescription className="text-xs md:text-sm text-muted-foreground mt-0.5">
-                  Review the information extracted from your business card before saving. Edit any incorrect fields.
-                </DialogDescription>
+              <DialogHeader className="p-5 md:p-6 pb-4 border-b bg-slate-50/50 dark:bg-slate-900/50 shrink-0">
+                <div className="pr-8">
+                  <DialogTitle className="text-xl md:text-2xl font-bold tracking-tight">
+                    Review Contact
+                  </DialogTitle>
+                  <DialogDescription className="text-xs md:text-sm text-muted-foreground mt-0.5">
+                    Review the information extracted from your business card before saving. Edit any incorrect fields.
+                  </DialogDescription>
+                </div>
               </DialogHeader>
 
               {/* Modal Body: Split view on Desktop */}
@@ -351,7 +349,7 @@ export default function OCRReviewModal({
                     onClick={() => setIsZoomImageOpen(true)}
                     className="absolute top-4 right-4 bg-background/80 hover:bg-background text-foreground p-2 rounded-xl border border-border shadow-sm transition-colors opacity-80 hover:opacity-100 flex items-center gap-1.5 text-xs font-medium"
                   >
-                    <ZoomIn className="w-3.5 h-3.5 text-primary" /> Full View
+                    <ZoomIn className="w-3.5 h-3.5 text-[#007BC2]" /> Full View
                   </button>
                 </div>
 
@@ -369,10 +367,10 @@ export default function OCRReviewModal({
                       </h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="sm:col-span-2">
-                          <Field label="Full Name" name="fullName" />
+                          {renderField("Full Name", "fullName")}
                         </div>
-                        <Field label="Company Name" name="companyName" />
-                        <Field label="Job Title" name="jobTitle" />
+                        {renderField("Company Name", "companyName")}
+                        {renderField("Job Title", "jobTitle")}
                       </div>
                     </div>
 
@@ -382,10 +380,10 @@ export default function OCRReviewModal({
                         Contact Info & Online
                       </h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <Field label="Email Address" name="email" type="email" />
-                        <Field label="Phone Number" name="phone" type="tel" />
-                        <Field label="Alternate Phone" name="alternatePhone" type="tel" />
-                        <Field label="Website" name="website" type="text" />
+                        {renderField("Email Address", "email", "email")}
+                        {renderField("Phone Number", "phone", "tel")}
+                        {renderField("Alternate Phone", "alternatePhone", "tel")}
+                        {renderField("Website", "website", "text")}
                       </div>
                     </div>
 
@@ -396,12 +394,12 @@ export default function OCRReviewModal({
                       </h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="sm:col-span-2">
-                          <Field label="Street Address" name="address" />
+                          {renderField("Street Address", "address")}
                         </div>
-                        <Field label="City" name="city" />
-                        <Field label="Country" name="country" />
+                        {renderField("City", "city")}
+                        {renderField("Country", "country")}
                         <div className="sm:col-span-2">
-                          <Field label="Notes" name="notes" />
+                          {renderField("Notes", "notes")}
                         </div>
                       </div>
                     </div>
@@ -410,15 +408,15 @@ export default function OCRReviewModal({
               </div>
 
               {/* Footer Actions */}
-              <div className="p-4 border-t bg-background flex items-center justify-between gap-3 shrink-0">
+              <div className="p-4 border-t bg-slate-50/50 dark:bg-slate-900/50 flex items-center justify-between gap-3 shrink-0">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setIsOpen(false)}
                   disabled={isSaving}
-                  className="rounded-xl text-xs font-semibold"
+                  className="h-10 px-4 rounded-xl text-xs font-semibold border-[#007BC2]/40 text-[#007BC2] bg-[#007BC2]/5 hover:bg-[#007BC2]/15 hover:border-[#007BC2] transition-all gap-1.5"
                 >
-                  <X className="w-4 h-4 mr-1.5" /> Cancel
+                  <X className="w-4 h-4 text-[#007BC2]" /> Cancel
                 </Button>
 
                 <div className="flex items-center gap-2">

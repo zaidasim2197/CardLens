@@ -722,33 +722,33 @@ export default function VerifiedQueuePage() {
                       {/* Card Footer Actions */}
                       <div className="px-4 py-3 border-t border-border/60 flex items-center justify-end gap-2">
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
-                          className="h-8 px-3 text-xs gap-1.5 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/30 dark:hover:text-blue-400"
+                          className="h-8 px-3 text-xs font-semibold rounded-xl border-[#007BC2]/30 text-[#007BC2] bg-[#007BC2]/5 hover:bg-[#007BC2]/15 gap-1.5"
                           onClick={() => {
                             setViewingRecord(record);
                             setIsViewModalOpen(true);
                           }}
                         >
-                          <Eye className="w-3.5 h-3.5" />
+                          <Eye className="w-3.5 h-3.5 text-[#007BC2]" />
                           View
                         </Button>
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
-                          className="h-8 px-3 text-xs gap-1.5 hover:bg-primary/10 hover:text-primary"
+                          className="h-8 px-3 text-xs font-semibold rounded-xl border-[#007BC2]/30 text-[#007BC2] bg-[#007BC2]/5 hover:bg-[#007BC2]/15 gap-1.5"
                           onClick={() => {
                             setEditingRecord(record);
                             setIsEditModalOpen(true);
                           }}
                         >
-                          <Edit className="w-3.5 h-3.5" />
+                          <Edit className="w-3.5 h-3.5 text-[#007BC2]" />
                           Edit
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-8 px-3 text-xs gap-1.5 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/30 dark:hover:text-red-400"
+                          className="h-8 px-3 text-xs font-semibold rounded-xl text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 gap-1.5"
                           onClick={() => {
                             setDeletingRecord(record);
                             setIsDeleteModalOpen(true);
@@ -806,6 +806,7 @@ export default function VerifiedQueuePage() {
               variant="outline"
               size="sm"
               onClick={() => setIsDeleteModalOpen(false)}
+              className="h-9 px-4 text-xs font-semibold rounded-xl border-[#007BC2]/40 text-[#007BC2] bg-[#007BC2]/5 hover:bg-[#007BC2]/15 hover:border-[#007BC2]"
             >
               Cancel
             </Button>

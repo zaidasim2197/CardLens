@@ -85,9 +85,9 @@ export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess 
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="w-[95vw] sm:max-w-5xl max-h-[92vh] overflow-hidden flex flex-col p-0 bg-background shadow-2xl rounded-2xl border">
         {/* Header */}
-        <DialogHeader className="p-5 md:p-6 pb-4 border-b bg-muted/20 shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="bg-primary/10 p-2.5 rounded-xl text-primary shrink-0">
+        <DialogHeader className="p-5 md:p-6 pb-4 border-b bg-slate-50/50 dark:bg-slate-900/50 shrink-0">
+          <div className="flex items-center gap-3 pr-8">
+            <div className="bg-[#007BC2]/10 p-2.5 rounded-xl text-[#007BC2] shrink-0">
               <UserCheck className="w-5 h-5" />
             </div>
             <div>
@@ -105,7 +105,7 @@ export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess 
           {imageUrl && (
             <div className="lg:w-5/12 p-4 md:p-6 bg-slate-100/70 dark:bg-slate-900/40 flex flex-col justify-center items-center border-b lg:border-b-0 lg:border-r border-border overflow-hidden min-h-[200px] lg:min-h-0 shrink-0">
               <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5 self-start">
-                <CreditCard className="w-3.5 h-3.5 text-primary" /> Scanned Card Reference
+                <CreditCard className="w-3.5 h-3.5 text-[#007BC2]" /> Scanned Card Reference
               </div>
               <div className="flex-1 flex items-center justify-center w-full overflow-hidden">
                 <img
@@ -209,12 +209,21 @@ export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess 
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t bg-muted/10 flex justify-end gap-3 shrink-0">
-          <Button type="button" variant="outline" className="rounded-xl text-xs font-semibold" onClick={() => setIsOpen(false)}>
-            <X className="w-4 h-4 mr-2" /> Cancel
+        <div className="p-4 border-t bg-slate-50/50 dark:bg-slate-900/50 flex justify-end gap-3 shrink-0">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-10 px-4 rounded-xl text-xs font-semibold border-[#007BC2]/40 text-[#007BC2] bg-[#007BC2]/5 hover:bg-[#007BC2]/15 hover:border-[#007BC2] transition-all gap-1.5"
+            onClick={() => setIsOpen(false)}
+          >
+            <X className="w-4 h-4 text-[#007BC2]" /> Cancel
           </Button>
-          <Button type="submit" form="edit-contact-form" className="h-10 px-5 rounded-xl font-bold text-xs bg-[#007BC2] hover:bg-[#0064a0] text-white shadow-md shadow-[#007BC2]/20">
-            <Save className="w-4 h-4 mr-2" /> Save Changes
+          <Button
+            type="submit"
+            form="edit-contact-form"
+            className="h-10 px-5 rounded-xl font-bold text-xs bg-[#007BC2] hover:bg-[#0064a0] text-white shadow-md shadow-[#007BC2]/20 gap-1.5"
+          >
+            <Save className="w-4 h-4 text-white" /> Save Changes
           </Button>
         </div>
 
