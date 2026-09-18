@@ -10,34 +10,75 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
 });
 
-router.post("/", upload.single("image"), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: "No image file provided." });
-    }
+router.post(
+  "/",
+  upload.fields([
+    { name: "image", maxCount: 1 },
+    { name: "imageBack", maxCount: 1 },
+  ]),
+  async (req, res) => {
+    try {
+      const files = req.files || {};
+      const frontFile = files.image?.[0] || null;
+      const backFile = files.imageBack?.[0] || null;
 
-    // MIME type validation
-    const allowedMimeTypes = ["image/jpeg", "image/png", "image/webp"];
-    if (!allowedMimeTypes.includes(req.file.mimetype)) {
-      return res.status(400).json({ error: "Invalid image format. Supported: JPG, PNG, WEBP." });
-    }
+      if (!frontFile && !backFile) {
+        return res.status(400).json({ error: "No image file provided." });
+      }
 
-    const ocrResult = await performOCR(req.file.buffer);
-    
-    const parsed = parseOCRText(ocrResult.rawText || "");
-    if (!hasReadableContact(ocrResult.rawText, parsed)) {
-      return res.status(422).json({ code: "NO_CONTACT_DETECTED", error: NO_CONTACT_MESSAGE });
-    }
+      // MIME type validation
+      const allowedMimeTypes = ["image/jpeg", "image/png", "image/webp"];
+      if (frontFile && !allowedMimeTypes.includes(frontFile.mimetype)) {
+        return res.status(400).json({ error: "Invalid front image format. Supported: JPG, PNG, WEBP." });
+      }
+      if (backFile && !allowedMimeTypes.includes(backFile.mimetype)) {
+        return res.status(400).json({ error: "Invalid back image format. Supported: JPG, PNG, WEBP." });
+      }
 
-    res.json({
-      rawText: ocrResult.rawText,
-      parsed: parsed,
-    });
-  } catch (error) {
-    console.error("OCR Route Error:", error.message);
-    res.status(500).json({ error: error.message || "Failed to process image." });
+      let frontText = "";
+      let backText = "";
+
+      if (frontFile) {
+        try {
+          const ocrResult = await performOCR(frontFile.buffer);
+          frontText = ocrResult.rawText || "";
+        } catch (err) {
+          console.error("Front card OCR error:", err.message);
+        }
+      }
+
+      if (backFile) {
+        try {
+          // If frontFile was also processed, wait 600ms to avoid API rate limiting
+          if (frontFile) {
+            await new Promise((res) => setTimeout(res, 600));
+          }
+          const ocrResultBack = await performOCR(backFile.buffer);
+          backText = ocrResultBack.rawText || "";
+        } catch (err) {
+          console.warn("Back card OCR warning (falling back to front only):", err.message);
+        }
+      }
+
+      const combinedRawText = backText
+        ? `${frontText}\n\n--- BACK SIDE ---\n\n${backText}`
+        : frontText;
+
+      const parsed = parseOCRText(combinedRawText);
+      if (!hasReadableContact(combinedRawText, parsed)) {
+        return res.status(422).json({ code: "NO_CONTACT_DETECTED", error: NO_CONTACT_MESSAGE });
+      }
+
+      res.json({
+        rawText: combinedRawText,
+        parsed: parsed,
+      });
+    } catch (error) {
+      console.error("OCR Route Error:", error.message);
+      res.status(500).json({ error: error.message || "Failed to process image." });
+    }
   }
-});
+);
 
 export default router;
 

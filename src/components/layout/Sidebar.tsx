@@ -2,21 +2,20 @@ import { NavLink } from "react-router-dom";
 import { Scan, ListChecks } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-
 const navItems = [
   { name: "Scan Card", to: "/", icon: Scan },
-  { name: "Verified Contacts", to: "/verified", icon: ListChecks },
+  { name: "Reviewed Contacts", to: "/verified", icon: ListChecks },
 ];
 
 export default function Sidebar() {
   return (
-    <aside className="hidden md:flex flex-col w-64 border-r bg-card shadow-sm h-full shrink-0">
+    <aside className="hidden md:flex flex-col w-64 border-r bg-card shadow-xs h-full shrink-0">
       <div className="p-6 pb-2">
-        <NavLink to="/" className="flex items-center gap-2">
+        <NavLink to="/" className="flex items-center gap-2.5">
           <img
-            src="/Picture1.png"
-            alt="Aventure Aviation"
-            className="h-9 w-auto object-contain"
+            src="/CardSnapLogo_Black.png"
+            alt="CardSnap by V71"
+            className="h-11 sm:h-12 w-auto object-contain dark:invert max-w-[220px]"
           />
         </NavLink>
       </div>
@@ -33,9 +32,9 @@ export default function Sidebar() {
               to={item.to}
               className={({ isActive }) =>
                 cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors text-sm font-medium",
+                  "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium cursor-pointer",
                   isActive
-                    ? "bg-primary text-primary-foreground shadow-sm"
+                    ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
                     : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                 )
               }

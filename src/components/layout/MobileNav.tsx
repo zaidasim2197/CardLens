@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { name: "Scan Card", to: "/", icon: Scan },
-  { name: "Verified Contacts", to: "/verified", icon: ListChecks },
+  { name: "Reviewed Contacts", to: "/verified", icon: ListChecks },
 ];
 
 export default function MobileNav() {
@@ -18,9 +18,9 @@ export default function MobileNav() {
             to={item.to}
             className={({ isActive }) =>
               cn(
-                "flex items-center justify-center gap-2 w-full py-2 text-xs font-semibold rounded-full transition-all duration-200 mx-1",
+                "flex items-center justify-center gap-2 w-full py-2 text-xs font-semibold rounded-full transition-all duration-200 mx-1 cursor-pointer",
                 isActive
-                  ? "bg-[#007BC2] text-white shadow-sm"
+                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               )
             }

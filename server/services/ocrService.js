@@ -22,15 +22,16 @@ export async function performOCR(imageBuffer) {
 
     // Handle OCR.space specific API errors
     if (data.IsErroredOnProcessing) {
-      console.error("OCR.space Processing Error:", data.ErrorMessage);
-      throw new Error("Failed to process image with OCR service.");
+      const errMsg = Array.isArray(data.ErrorMessage) ? data.ErrorMessage.join(" ") : String(data.ErrorMessage || "Unknown OCR error");
+      console.error("OCR.space Processing Error:", errMsg);
+      throw new Error(errMsg || "Failed to process image with OCR service.");
     }
 
     if (!data.ParsedResults || data.ParsedResults.length === 0) {
       return { rawText: "" };
     }
 
-    const rawText = data.ParsedResults[0].ParsedText || "";
+    const rawText = data.ParsedResults[0]?.ParsedText || "";
     
     // Normalize response for the rest of the application
     return {
@@ -44,6 +45,6 @@ export async function performOCR(imageBuffer) {
       throw new Error("OCR service authentication failed. Please check the API key.");
     }
     
-    throw new Error("Unable to scan this business card. Please try again.");
+    throw new Error(error.message || "Unable to scan this business card. Please try again.");
   }
 }

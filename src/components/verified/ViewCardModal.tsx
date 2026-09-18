@@ -14,14 +14,23 @@ export default function ViewCardModal({ isOpen, setIsOpen, record }: Props) {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    if (record?.originalImage) {
-      const url = URL.createObjectURL(record.originalImage);
-      setImageUrl(url);
+    if (record?.isDemo) {
+      setImageUrl("/democard.png");
+      return;
+    }
+    if (record?.originalImage && record.originalImage.size >= 100) {
+      let url: string | null = null;
+      try {
+        url = URL.createObjectURL(record.originalImage);
+        setImageUrl(url);
+      } catch {
+        setImageUrl("/democard.png");
+      }
       return () => {
-        URL.revokeObjectURL(url);
+        if (url) URL.revokeObjectURL(url);
       };
     } else {
-      setImageUrl(null);
+      setImageUrl("/democard.png");
     }
   }, [record]);
 
@@ -43,7 +52,7 @@ export default function ViewCardModal({ isOpen, setIsOpen, record }: Props) {
         <DialogHeader className="p-4 sm:p-6 pb-4 border-b bg-slate-50/50 dark:bg-slate-900/50 shrink-0">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pr-8">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="bg-[#007BC2]/10 p-2 rounded-xl text-[#007BC2] shrink-0">
+              <div className="bg-slate-900/10 dark:bg-white/10 p-2 rounded-xl text-slate-900 dark:text-white shrink-0">
                 <Eye className="w-5 h-5" />
               </div>
               <div className="min-w-0">
@@ -60,9 +69,9 @@ export default function ViewCardModal({ isOpen, setIsOpen, record }: Props) {
                 variant="outline"
                 size="sm"
                 onClick={handleDownloadImage}
-                className="h-8 sm:h-9 px-3 text-xs font-semibold rounded-xl border-[#007BC2]/40 text-[#007BC2] bg-[#007BC2]/5 hover:bg-[#007BC2]/15 hover:border-[#007BC2] transition-all gap-1.5 shrink-0 self-start sm:self-auto"
+                className="h-8 sm:h-9 px-3 text-xs font-semibold rounded-xl border-slate-900/30 dark:border-slate-700 text-slate-900 dark:text-white bg-slate-900/5 dark:bg-slate-800/50 hover:bg-slate-900/10 dark:hover:bg-slate-800 hover:border-slate-900 transition-all gap-1.5 shrink-0 self-start sm:self-auto cursor-pointer"
               >
-                <Download className="w-3.5 h-3.5 text-[#007BC2]" /> Download Card
+                <Download className="w-3.5 h-3.5 text-slate-900 dark:text-white" /> Download Card
               </Button>
             )}
           </div>
@@ -71,43 +80,42 @@ export default function ViewCardModal({ isOpen, setIsOpen, record }: Props) {
         <div className="flex flex-col lg:flex-row flex-1 overflow-hidden min-h-0">
           {/* Card Image Display */}
           <div className="lg:w-1/2 p-4 sm:p-6 bg-slate-100/70 dark:bg-slate-900/40 flex items-center justify-center relative min-h-[220px] lg:min-h-0 shrink-0 border-b lg:border-b-0 lg:border-r border-border">
-            {imageUrl ? (
-              <img
-                src={imageUrl}
-                alt={vData.fullName || "Business Card"}
-                className="max-w-full max-h-full object-contain rounded-xl shadow-md border border-slate-200 dark:border-slate-800"
-              />
-            ) : (
-              <div className="text-muted-foreground text-sm">No image available</div>
-            )}
+            <img
+              src={imageUrl || "/democard.png"}
+              alt={vData.fullName || "Business Card"}
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = "/democard.png";
+              }}
+              className="max-w-full max-h-full object-contain rounded-xl shadow-md border border-slate-200 dark:border-slate-800"
+            />
           </div>
 
           {/* Contact Details Display */}
           <div className="lg:w-1/2 overflow-y-auto p-4 sm:p-6 space-y-6 bg-card">
             <div>
               <h3 className="text-xl sm:text-2xl font-bold text-foreground">{vData.fullName || "—"}</h3>
-              <p className="text-sm font-medium text-[#007BC2] mt-0.5">{vData.jobTitle || "No Title Specified"}</p>
+              <p className="text-sm font-medium text-slate-900 dark:text-slate-100 mt-0.5">{vData.jobTitle || "No Title Specified"}</p>
               <p className="text-sm text-muted-foreground">{vData.companyName || "No Company Specified"}</p>
             </div>
 
             <div className="space-y-3 pt-2 text-sm border-t">
               {vData.email && (
                 <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300">
-                  <Mail className="w-4 h-4 text-[#007BC2] shrink-0" />
+                  <Mail className="w-4 h-4 text-slate-900 dark:text-white shrink-0" />
                   <a href={`mailto:${vData.email}`} className="hover:underline truncate">{vData.email}</a>
                 </div>
               )}
 
               {vData.phone && (
                 <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300">
-                  <Phone className="w-4 h-4 text-[#007BC2] shrink-0" />
+                  <Phone className="w-4 h-4 text-slate-900 dark:text-white shrink-0" />
                   <span>{vData.phone} {vData.alternatePhone && ` / ${vData.alternatePhone}`}</span>
                 </div>
               )}
 
               {vData.website && (
                 <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300">
-                  <Globe className="w-4 h-4 text-[#007BC2] shrink-0" />
+                  <Globe className="w-4 h-4 text-slate-900 dark:text-white shrink-0" />
                   <a href={vData.website.startsWith("http") ? vData.website : `https://${vData.website}`} target="_blank" rel="noreferrer" className="hover:underline truncate">
                     {vData.website}
                   </a>
@@ -116,7 +124,7 @@ export default function ViewCardModal({ isOpen, setIsOpen, record }: Props) {
 
               {(vData.address || vData.city || vData.country) && (
                 <div className="flex items-start gap-3 text-slate-700 dark:text-slate-300">
-                  <MapPin className="w-4 h-4 text-[#007BC2] shrink-0 mt-0.5" />
+                  <MapPin className="w-4 h-4 text-slate-900 dark:text-white shrink-0 mt-0.5" />
                   <div>
                     {vData.address && <div>{vData.address}</div>}
                     <div>
@@ -140,9 +148,9 @@ export default function ViewCardModal({ isOpen, setIsOpen, record }: Props) {
           <Button
             variant="outline"
             onClick={() => setIsOpen(false)}
-            className="h-9 px-4 text-xs sm:text-sm font-semibold rounded-xl border-[#007BC2]/40 text-[#007BC2] bg-[#007BC2]/5 hover:bg-[#007BC2]/15 hover:border-[#007BC2] transition-all gap-1.5"
+            className="h-9 px-4 text-xs sm:text-sm font-semibold rounded-xl border-slate-900/30 dark:border-slate-700 text-slate-900 dark:text-white bg-slate-900/5 dark:bg-slate-800/50 hover:bg-slate-900/10 dark:hover:bg-slate-800 hover:border-slate-900 transition-all gap-1.5 cursor-pointer"
           >
-            <X className="w-4 h-4 text-[#007BC2]" /> Close
+            <X className="w-4 h-4 text-slate-900 dark:text-white" /> Close
           </Button>
         </div>
       </DialogContent>

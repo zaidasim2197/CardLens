@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { storageService } from "@/lib/db";
 import { cropBusinessCardImage } from "@/lib/imageCrop";
 import type { ContactRecord, OCRData } from "@/types";
+import { ModernContactTypeSelect, ModernDatePicker } from "../scanner/OCRReviewModal";
 
 interface Props {
   isOpen: boolean;
@@ -17,12 +18,31 @@ interface Props {
   onSuccess?: () => void;
 }
 
+interface EditFormData {
+  fullName: string;
+  jobTitle: string;
+  companyName: string;
+  email: string;
+  phone: string;
+  alternatePhone: string;
+  website: string;
+  address: string;
+  city: string;
+  country: string;
+  notes: string;
+  metAtLocation: string;
+  contactType: string;
+  productInterest: string;
+  relationshipOwner: string;
+  followUpDate: string;
+}
+
 export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess }: Props) {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [croppedImage, setCroppedImage] = useState<File | null>(null);
 
-  const { register, handleSubmit, reset } = useForm<OCRData>({
-    defaultValues: record?.verifiedData || {
+  const { register, handleSubmit, reset, watch, setValue } = useForm<EditFormData>({
+    defaultValues: {
       fullName: "",
       jobTitle: "",
       companyName: "",
@@ -33,7 +53,12 @@ export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess 
       address: "",
       city: "",
       country: "",
-      notes: ""
+      notes: "",
+      metAtLocation: "",
+      contactType: "",
+      productInterest: "",
+      relationshipOwner: "",
+      followUpDate: "",
     }
   });
 
@@ -42,10 +67,30 @@ export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess 
     let objectUrl: string | null = null;
 
     if (isOpen && record) {
-      reset(record.verifiedData);
+      reset({
+        fullName: record.verifiedData.fullName || "",
+        jobTitle: record.verifiedData.jobTitle || "",
+        companyName: record.verifiedData.companyName || "",
+        email: record.verifiedData.email || "",
+        phone: record.verifiedData.phone || "",
+        alternatePhone: record.verifiedData.alternatePhone || "",
+        website: record.verifiedData.website || "",
+        address: record.verifiedData.address || "",
+        city: record.verifiedData.city || "",
+        country: record.verifiedData.country || "",
+        notes: record.verifiedData.notes || "",
+        metAtLocation: record.verifiedData.meetingContext?.metAtLocation || "",
+        contactType: record.verifiedData.meetingContext?.contactType || "",
+        productInterest: record.verifiedData.meetingContext?.productInterest || "",
+        relationshipOwner: record.verifiedData.meetingContext?.relationshipOwner || "",
+        followUpDate: record.verifiedData.meetingContext?.followUpDate || "",
+      });
+
       setImageUrl(null);
       setCroppedImage(null);
-      if (record.originalImage) {
+      if (record.isDemo) {
+        setImageUrl("/democard.png");
+      } else if (record.originalImage && record.originalImage.size >= 100) {
         void cropBusinessCardImage(record.originalImage, record.originalFileName)
           .then((cropped) => {
             if (cancelled) return;
@@ -55,13 +100,17 @@ export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess 
           })
           .catch(() => {
             if (cancelled) return;
-            objectUrl = URL.createObjectURL(record.originalImage);
-            setCroppedImage(null);
-            setImageUrl(objectUrl);
+            try {
+              objectUrl = URL.createObjectURL(record.originalImage);
+              setCroppedImage(null);
+              setImageUrl(objectUrl);
+            } catch {
+              setImageUrl("/democard.png");
+            }
           });
       } else {
         setCroppedImage(null);
-        setImageUrl(null);
+        setImageUrl("/democard.png");
       }
     }
 
@@ -73,7 +122,7 @@ export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess 
 
   if (!record) return null;
 
-  const onSubmit = async (data: OCRData) => {
+  const onSubmit = async (data: EditFormData) => {
     try {
       const updatedVerifiedData: OCRData = {
         fullName: data.fullName?.trim() || "",
@@ -87,6 +136,13 @@ export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess 
         city: data.city?.trim() || "",
         country: data.country?.trim() || "",
         notes: data.notes?.trim() || "",
+        meetingContext: {
+          metAtLocation: data.metAtLocation?.trim() || "",
+          contactType: data.contactType || "",
+          productInterest: data.productInterest?.trim() || "",
+          relationshipOwner: data.relationshipOwner?.trim() || "",
+          followUpDate: data.followUpDate || "",
+        }
       };
 
       await storageService.updateRecord(record.id, {
@@ -114,7 +170,7 @@ export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess 
         {/* Header */}
         <DialogHeader className="shrink-0 border-b bg-slate-50/50 p-4 pb-3 dark:bg-slate-900/50 sm:p-5 sm:pb-4 md:p-6 md:pb-4">
           <div className="flex items-center gap-3 pr-8">
-            <div className="bg-[#007BC2]/10 p-2.5 rounded-xl text-[#007BC2] shrink-0">
+            <div className="bg-slate-900/10 dark:bg-white/10 p-2.5 rounded-xl text-slate-900 dark:text-white shrink-0">
               <UserCheck className="w-5 h-5" />
             </div>
             <div>
@@ -132,12 +188,15 @@ export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess 
           {imageUrl && (
             <div className="flex h-[190px] min-h-[190px] shrink-0 flex-col overflow-hidden border-b border-border bg-slate-100/70 p-3 dark:bg-slate-900/40 sm:h-[230px] sm:min-h-[230px] sm:p-4 lg:h-auto lg:min-h-0 lg:w-5/12 lg:border-b-0 lg:border-r lg:p-6">
               <div className="mb-2 flex shrink-0 items-center gap-1.5 self-start text-[10px] font-semibold uppercase tracking-wider text-muted-foreground sm:mb-3 sm:text-xs">
-                <CreditCard className="w-3.5 h-3.5 text-[#007BC2]" /> Scanned Card Reference
+                <CreditCard className="w-3.5 h-3.5 text-slate-900 dark:text-white" /> Scanned Card Reference
               </div>
               <div className="flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden rounded-xl">
                 <img
-                  src={imageUrl}
+                  src={imageUrl || "/democard.png"}
                   alt="Business Card Reference"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "/democard.png";
+                  }}
                   className="h-full w-full rounded-xl border border-slate-200 object-contain shadow-md dark:border-slate-800"
                 />
               </div>
@@ -146,7 +205,7 @@ export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess 
 
           {/* Form Panel */}
           <div className={`shrink-0 bg-background p-4 sm:p-5 md:p-6 lg:flex-1 lg:shrink lg:overflow-y-auto ${!imageUrl ? 'w-full' : 'lg:w-7/12'}`}>
-            <form id="edit-contact-form" onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <form id="edit-contact-form" onSubmit={handleSubmit(onSubmit)} className="space-y-6 pb-36">
               {/* Identity Group */}
               <div className="space-y-4">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground border-b pb-1">
@@ -198,6 +257,45 @@ export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess 
                 </div>
               </div>
 
+              {/* Meeting Context Group */}
+              <div className="space-y-4 pt-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground border-b pb-1">
+                  Meeting Context (Optional)
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="metAtLocation" className="font-semibold text-sm">Met at / Event / Location</Label>
+                    <Input id="metAtLocation" {...register("metAtLocation")} placeholder="e.g. MRO Aviation Trade Show" className="h-10" />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="contactType" className="font-semibold text-sm text-slate-900 dark:text-slate-100">Contact Type</Label>
+                    <ModernContactTypeSelect
+                      value={watch("contactType") || ""}
+                      onChange={(val) => setValue("contactType", val, { shouldDirty: true })}
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="productInterest" className="font-semibold text-sm">Product / Interest</Label>
+                    <Input id="productInterest" {...register("productInterest")} placeholder="e.g. Component Repair & Supply" className="h-10" />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="relationshipOwner" className="font-semibold text-sm">Relationship Owner / Salesperson</Label>
+                    <Input id="relationshipOwner" {...register("relationshipOwner")} placeholder="e.g. Lead Sales Exec" className="h-10" />
+                  </div>
+
+                  <div className="md:col-span-2 space-y-1.5">
+                    <Label htmlFor="followUpDate" className="font-semibold text-sm text-slate-900 dark:text-slate-100">Suggested Follow-up Date</Label>
+                    <ModernDatePicker
+                      value={watch("followUpDate") || ""}
+                      onChange={(val) => setValue("followUpDate", val, { shouldDirty: true })}
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* Location & Notes Group */}
               <div className="space-y-4 pt-2">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground border-b pb-1">
@@ -240,17 +338,17 @@ export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess 
           <Button
             type="button"
             variant="outline"
-            className="h-10 px-4 rounded-xl text-xs font-semibold border-[#007BC2]/40 text-[#007BC2] bg-[#007BC2]/5 hover:bg-[#007BC2]/15 hover:border-[#007BC2] transition-all gap-1.5"
+            className="h-10 px-4 rounded-xl text-xs font-semibold border-slate-900/30 dark:border-slate-700 text-slate-900 dark:text-white bg-slate-900/5 dark:bg-slate-800/50 hover:bg-slate-900/10 dark:hover:bg-slate-800 hover:border-slate-900 transition-all gap-1.5 cursor-pointer"
             onClick={() => setIsOpen(false)}
           >
-            <X className="w-4 h-4 text-[#007BC2]" /> Cancel
+            <X className="w-4 h-4 text-slate-900 dark:text-white" /> Cancel
           </Button>
           <Button
             type="submit"
             form="edit-contact-form"
-            className="h-10 px-5 rounded-xl font-bold text-xs bg-[#007BC2] hover:bg-[#0064a0] text-white shadow-md shadow-[#007BC2]/20 gap-1.5"
+            className="h-10 px-5 rounded-xl font-bold text-xs bg-slate-900 hover:bg-black dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 shadow-md shadow-slate-900/20 gap-1.5 cursor-pointer"
           >
-            <Save className="w-4 h-4 text-white" /> Save Changes
+            <Save className="w-4 h-4 text-white dark:text-slate-900" /> Save Changes
           </Button>
         </div>
 

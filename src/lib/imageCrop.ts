@@ -125,3 +125,48 @@ export async function cropBusinessCardImage(
     decoded.cleanup();
   }
 }
+
+export async function combineFrontAndBackCards(
+  frontBlob: Blob,
+  backBlob: Blob
+): Promise<File> {
+  const frontDecoded = await decodeImage(frontBlob);
+  const backDecoded = await decodeImage(backBlob);
+
+  try {
+    const width = Math.max(frontDecoded.width, backDecoded.width);
+    const gap = 24;
+    const height = frontDecoded.height + backDecoded.height + gap;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Unable to create canvas context");
+
+    ctx.fillStyle = "#0F172A";
+    ctx.fillRect(0, 0, width, height);
+
+    const frontX = (width - frontDecoded.width) / 2;
+    ctx.drawImage(frontDecoded.source, frontX, 0);
+
+    const backX = (width - backDecoded.width) / 2;
+    ctx.drawImage(backDecoded.source, backX, frontDecoded.height + gap);
+
+    const combinedBlob = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(
+        (blob) => (blob ? resolve(blob) : reject(new Error("Failed to combine card images"))),
+        "image/jpeg",
+        0.92
+      );
+    });
+
+    return new File([combinedBlob], `card-2sided-${Date.now()}-cropped.jpg`, {
+      type: "image/jpeg",
+      lastModified: Date.now(),
+    });
+  } finally {
+    frontDecoded.cleanup();
+    backDecoded.cleanup();
+  }
+}

@@ -40,10 +40,10 @@ export default function DuplicateWarningModal({
             </div>
             <div>
               <DialogTitle className="text-lg font-bold text-foreground">
-                Possible Duplicate Contact
+                Possible existing contact found
               </DialogTitle>
-              <DialogDescription className="text-xs text-muted-foreground mt-0.5">
-                {matchReason || "We found an existing contact with similar information."}
+              <DialogDescription className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                {matchReason ? `${matchReason}. Please review it before creating a second record.` : "Please review it before creating a second record."}
               </DialogDescription>
             </div>
           </div>
@@ -98,24 +98,24 @@ export default function DuplicateWarningModal({
             variant="outline"
             size="sm"
             onClick={onClose}
-            className="h-11 w-full rounded-xl border-[#007BC2]/40 bg-[#007BC2]/5 px-4 text-sm font-semibold text-[#007BC2] hover:border-[#007BC2] hover:bg-[#007BC2]/15 sm:h-11 sm:min-w-[105px] sm:w-auto"
+            className="h-10 w-full rounded-xl border-slate-900/30 bg-slate-900/5 px-3 text-xs font-semibold text-slate-900 dark:border-slate-700 dark:bg-slate-800/50 dark:text-white hover:border-slate-900 hover:bg-slate-900/10 dark:hover:bg-slate-800 sm:w-auto cursor-pointer"
           >
-            Cancel
+            Go back and edit
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={onViewExisting}
-            className="h-11 w-full rounded-xl border-[#007BC2]/30 px-4 text-sm font-semibold text-[#007BC2] hover:bg-[#007BC2]/10 sm:h-11 sm:min-w-[130px] sm:w-auto"
+            className="h-10 w-full rounded-xl border-slate-900/30 px-3 text-xs font-semibold text-slate-900 dark:border-slate-700 dark:text-white hover:bg-slate-900/10 dark:hover:bg-slate-800 sm:w-auto cursor-pointer"
           >
-            Review Existing
+            Review existing contact
           </Button>
           <Button
             size="sm"
             onClick={onSaveAnyway}
-            className="h-11 w-full rounded-xl bg-[#007BC2] px-4 text-sm font-bold text-white shadow-xs hover:bg-[#0064a0] sm:h-11 sm:min-w-[120px] sm:w-auto"
+            className="h-10 w-full rounded-xl bg-slate-900 hover:bg-black dark:bg-white dark:hover:bg-slate-100 px-4 text-xs font-bold text-white dark:text-slate-900 shadow-xs sm:w-auto cursor-pointer"
           >
-            Save Anyway
+            Save as a new contact
           </Button>
         </DialogFooter>
       </DialogContent>

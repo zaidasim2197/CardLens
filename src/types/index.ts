@@ -1,3 +1,12 @@
+export interface MeetingContext {
+  metAtLocation?: string;
+  contactType?: "Prospect" | "Customer" | "Supplier" | "Partner" | "Other" | string;
+  productInterest?: string;
+  relationshipOwner?: string;
+  notes?: string;
+  followUpDate?: string;
+}
+
 export interface OCRData {
   fullName: string;
   jobTitle: string;
@@ -10,6 +19,7 @@ export interface OCRData {
   city: string;
   country: string;
   notes: string;
+  meetingContext?: MeetingContext;
 }
 
 export type RecordStatus = 
@@ -29,5 +39,6 @@ export interface ContactRecord {
   verifiedData: OCRData;
   
   status: RecordStatus;
+  isDemo?: boolean;
 }
 

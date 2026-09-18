@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Save, X, AlertCircle, CheckCircle2, ArrowRight, RefreshCw, ZoomIn } from "lucide-react";
+import { Save, X, AlertCircle, CheckCircle2, ArrowRight, RefreshCw, ZoomIn, ChevronDown, Calendar, ChevronLeft } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +17,23 @@ import type { OCRData, ContactRecord } from "@/types";
 const schema = z.object({
   fullName: z.string().optional(),
   companyName: z.string().optional(),
-  email: z.string().email("Invalid email format").optional().or(z.literal("")),
+  email: z.string().optional().or(z.literal("")).superRefine((val, ctx) => {
+    if (!val || val.trim() === "") return;
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(val)) {
+      if (val.includes("@") && !val.split("@")[1]?.includes(".")) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Missing domain extension like .com at end (e.g. daniel.rahman@aerosyntech.com)",
+        });
+      } else {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Invalid email format (dots in name are allowed, e.g. daniel.rahman@aerosyntech.com)",
+        });
+      }
+    }
+  }),
   phone: z.string().optional(),
   jobTitle: z.string().optional(),
   alternatePhone: z.string().optional(),
@@ -26,6 +42,13 @@ const schema = z.object({
   city: z.string().optional(),
   country: z.string().optional(),
   notes: z.string().optional(),
+
+  // Meeting Context fields
+  metAtLocation: z.string().optional(),
+  contactType: z.string().optional(),
+  productInterest: z.string().optional(),
+  relationshipOwner: z.string().optional(),
+  followUpDate: z.string().optional(),
 }).superRefine((data, ctx) => {
   if (!data.fullName && !data.companyName) {
     ctx.addIssue({
@@ -45,14 +68,288 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
+export function ModernContactTypeSelect({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (val: string) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const options = [
+    { label: "None", value: "", desc: "No category assigned", badgeBg: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400" },
+    { label: "Prospect", value: "Prospect", desc: "", badgeBg: "bg-slate-900/10 text-slate-900 dark:bg-white/10 dark:text-white" },
+    { label: "Customer", value: "Customer", desc: "", badgeBg: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" },
+    { label: "Supplier", value: "Supplier", desc: "", badgeBg: "bg-purple-500/10 text-purple-600 dark:text-purple-400" },
+    { label: "Partner", value: "Partner", desc: "", badgeBg: "bg-amber-500/10 text-amber-600 dark:text-amber-400" },
+    { label: "Other", value: "Other", desc: "", badgeBg: "bg-slate-500/10 text-slate-600 dark:text-slate-400" },
+  ];
+
+  const selected = options.find((o) => o.value === value) || options[0];
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div ref={containerRef} className="relative w-full">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex h-11 w-full items-center justify-between rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3.5 text-sm font-semibold text-slate-900 dark:text-slate-100 shadow-xs hover:border-slate-900 dark:hover:border-slate-400 focus:border-slate-900 transition-all cursor-pointer"
+      >
+        <div className="flex items-center gap-2">
+          <span className={`text-xs font-bold px-2.5 py-0.5 rounded-md ${selected.badgeBg}`}>
+            {selected.label}
+          </span>
+          <span className="text-xs text-slate-500 font-normal hidden sm:inline">{selected.desc}</span>
+        </div>
+        <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-full left-0 right-0 mt-1.5 z-[9999] rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/98 dark:bg-slate-900/98 p-1.5 shadow-2xl space-y-1 backdrop-blur-xl animate-in fade-in zoom-in-95">
+          {options.map((opt) => {
+            const isSel = opt.value === value;
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => {
+                  onChange(opt.value);
+                  setIsOpen(false);
+                }}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all cursor-pointer ${isSel
+                  ? "bg-slate-900/10 text-slate-900 dark:bg-white/10 dark:text-white font-bold"
+                  : "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-medium"
+                  }`}
+              >
+                <div>
+                  <div className="text-xs font-bold">{opt.label}</div>
+                  <div className="text-[11px] text-slate-500 font-normal">{opt.desc}</div>
+                </div>
+                {isSel && <CheckCircle2 className="w-4 h-4 text-slate-900 dark:text-white" />}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function ModernDatePicker({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (val: string) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const getValidDate = (val: string) => {
+    if (val && typeof val === "string") {
+      const parts = val.split("-");
+      if (parts.length === 3) {
+        const y = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10) - 1;
+        const d = parseInt(parts[2], 10);
+        if (!isNaN(y) && !isNaN(m) && !isNaN(d) && y > 1900 && y < 2100 && m >= 0 && m <= 11 && d >= 1 && d <= 31) {
+          return new Date(y, m, d);
+        }
+      }
+    }
+    return new Date();
+  };
+
+  const initialDate = getValidDate(value);
+  const [viewDate, setViewDate] = useState<Date>(
+    () => new Date(initialDate.getFullYear(), initialDate.getMonth(), 1)
+  );
+
+  useEffect(() => {
+    if (value) {
+      const d = getValidDate(value);
+      setViewDate(new Date(d.getFullYear(), d.getMonth(), 1));
+    }
+  }, [value]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const setPreset = (days: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() + days);
+    const formatted = d.toISOString().split("T")[0];
+    onChange(formatted);
+    setViewDate(new Date(d.getFullYear(), d.getMonth(), 1));
+    setIsOpen(false);
+  };
+
+  const safeYear = !isNaN(viewDate.getFullYear()) ? viewDate.getFullYear() : new Date().getFullYear();
+  const safeMonth = !isNaN(viewDate.getMonth()) ? viewDate.getMonth() : new Date().getMonth();
+
+  const monthNames = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+  const daysInMonth = new Date(safeYear, safeMonth + 1, 0).getDate();
+  const firstDayIndex = new Date(safeYear, safeMonth, 1).getDay();
+
+  const prevMonth = () => setViewDate(new Date(safeYear, safeMonth - 1, 1));
+  const nextMonth = () => setViewDate(new Date(safeYear, safeMonth + 1, 1));
+
+  const formatDisplay = (val: string) => {
+    if (!val) return "Select follow-up date";
+    const parts = val.split("-");
+    if (parts.length !== 3) return val;
+    const y = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10) - 1;
+    const d = parseInt(parts[2], 10);
+    if (isNaN(y) || isNaN(m) || isNaN(d)) return val;
+    const dateObj = new Date(y, m, d);
+    return dateObj.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  };
+
+  return (
+    <div ref={containerRef} className="relative w-full">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex h-11 w-full items-center justify-between rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3.5 text-sm font-semibold text-slate-900 dark:text-slate-100 shadow-xs hover:border-slate-900 dark:hover:border-slate-400 focus:border-slate-900 transition-all cursor-pointer"
+      >
+        <div className="flex items-center gap-2">
+          <Calendar className="w-4 h-4 text-slate-900 dark:text-white" />
+          <span>{formatDisplay(value)}</span>
+        </div>
+        <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
+      </button>
+
+      {isOpen && (
+        <div className="absolute bottom-full mb-2 sm:bottom-auto sm:top-full sm:mt-2 left-0 z-[9999] w-72 sm:w-80 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/98 dark:bg-slate-900/98 p-4 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95">
+          {/* Quick Presets Header */}
+          <div className="flex items-center justify-between gap-1 pb-3 mb-3 border-b border-slate-100 dark:border-slate-800">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Presets:</span>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setPreset(0)}
+                className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-900 hover:text-white dark:hover:bg-white dark:hover:text-slate-900 transition-all cursor-pointer"
+              >
+                Today
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreset(3)}
+                className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-900/10 text-slate-900 dark:bg-white/10 dark:text-white hover:bg-slate-900 hover:text-white dark:hover:bg-white dark:hover:text-slate-900 transition-all cursor-pointer"
+              >
+                +3 Days
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreset(7)}
+                className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-900/10 text-slate-900 dark:bg-white/10 dark:text-white hover:bg-slate-900 hover:text-white dark:hover:bg-white dark:hover:text-slate-900 transition-all cursor-pointer"
+              >
+                +1 Wk
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreset(14)}
+                className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-900/10 text-slate-900 dark:bg-white/10 dark:text-white hover:bg-slate-900 hover:text-white dark:hover:bg-white dark:hover:text-slate-900 transition-all cursor-pointer"
+              >
+                +2 Wks
+              </button>
+            </div>
+          </div>
+
+          {/* Month Header */}
+          <div className="flex items-center justify-between mb-3 px-1">
+            <button
+              type="button"
+              onClick={prevMonth}
+              className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 cursor-pointer"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
+              {monthNames[safeMonth]} {safeYear}
+            </span>
+            <button
+              type="button"
+              onClick={nextMonth}
+              className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 cursor-pointer"
+            >
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Weekday headers */}
+          <div className="grid grid-cols-7 gap-1 text-center mb-1">
+            {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((d) => (
+              <span key={d} className="text-[10px] font-semibold text-slate-400">
+                {d}
+              </span>
+            ))}
+          </div>
+
+          {/* Day Grid */}
+          <div className="grid grid-cols-7 gap-1 text-center">
+            {Array.from({ length: firstDayIndex }).map((_, i) => (
+              <div key={`empty-${i}`} />
+            ))}
+            {Array.from({ length: daysInMonth }).map((_, i) => {
+              const dayNum = i + 1;
+              const formattedDate = `${safeYear}-${String(safeMonth + 1).padStart(2, "0")}-${String(dayNum).padStart(2, "0")}`;
+              const isSelected = value === formattedDate;
+              return (
+                <button
+                  key={dayNum}
+                  type="button"
+                  onClick={() => {
+                    onChange(formattedDate);
+                    setIsOpen(false);
+                  }}
+                  className={`h-7 w-7 rounded-lg text-xs font-bold flex items-center justify-center transition-all cursor-pointer ${isSelected
+                    ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-md shadow-slate-900/30"
+                    : "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                    }`}
+                >
+                  {dayNum}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface Props {
   isOpen: boolean;
   setIsOpen: (val: boolean) => void;
   ocrData: OCRData;
   rawText: string;
-  originalImage: File;
+  originalImage: File | Blob;
   imageUrl: string;
   onSuccess: () => void;
+  isDemo?: boolean;
 }
 
 export default function OCRReviewModal({
@@ -63,6 +360,7 @@ export default function OCRReviewModal({
   originalImage,
   imageUrl,
   onSuccess,
+  isDemo = false,
 }: Props) {
   const navigate = useNavigate();
 
@@ -82,16 +380,51 @@ export default function OCRReviewModal({
     formState: { errors, dirtyFields },
     reset,
     watch,
+    setValue,
   } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { ...ocrData },
+    defaultValues: {
+      fullName: ocrData?.fullName || "",
+      jobTitle: ocrData?.jobTitle || "",
+      companyName: ocrData?.companyName || "",
+      email: ocrData?.email || "",
+      phone: ocrData?.phone || "",
+      alternatePhone: ocrData?.alternatePhone || "",
+      website: ocrData?.website || "",
+      address: ocrData?.address || "",
+      city: ocrData?.city || "",
+      country: ocrData?.country || "",
+      notes: ocrData?.notes || "",
+      metAtLocation: ocrData?.meetingContext?.metAtLocation || "",
+      contactType: ocrData?.meetingContext?.contactType || "",
+      productInterest: ocrData?.meetingContext?.productInterest || "",
+      relationshipOwner: ocrData?.meetingContext?.relationshipOwner || "",
+      followUpDate: ocrData?.meetingContext?.followUpDate || "",
+    },
   });
 
   const formValues = watch();
 
   useEffect(() => {
     if (isOpen && ocrData) {
-      reset(ocrData);
+      reset({
+        fullName: ocrData.fullName || "",
+        jobTitle: ocrData.jobTitle || "",
+        companyName: ocrData.companyName || "",
+        email: ocrData.email || "",
+        phone: ocrData.phone || "",
+        alternatePhone: ocrData.alternatePhone || "",
+        website: ocrData.website || "",
+        address: ocrData.address || "",
+        city: ocrData.city || "",
+        country: ocrData.country || "",
+        notes: ocrData.notes || "",
+        metAtLocation: ocrData.meetingContext?.metAtLocation || "",
+        contactType: ocrData.meetingContext?.contactType || "",
+        productInterest: ocrData.meetingContext?.productInterest || "",
+        relationshipOwner: ocrData.meetingContext?.relationshipOwner || "",
+        followUpDate: ocrData.meetingContext?.followUpDate || "",
+      });
       setSavedRecord(null);
       setDuplicateMatch(null);
     }
@@ -100,16 +433,18 @@ export default function OCRReviewModal({
   const saveRecordToDB = async (verifiedData: OCRData) => {
     setIsSaving(true);
     try {
+      const fileName = (originalImage as File).name || "demo-card.png";
       const record: ContactRecord = {
         id: crypto.randomUUID(),
         originalImage: originalImage,
-        originalFileName: originalImage.name,
+        originalFileName: fileName,
         createdAt: new Date().toISOString(),
         verifiedAt: new Date().toISOString(),
         rawOCRText: rawText,
         ocrData: ocrData,
         verifiedData: verifiedData,
         status: "VERIFIED" as const,
+        isDemo: isDemo,
       };
 
       await storageService.saveRecord(record);
@@ -135,6 +470,14 @@ export default function OCRReviewModal({
       city: data.city?.trim() || "",
       country: data.country?.trim() || "",
       notes: data.notes?.trim() || "",
+      meetingContext: {
+        metAtLocation: data.metAtLocation?.trim() || "",
+        contactType: data.contactType?.trim() || "",
+        productInterest: data.productInterest?.trim() || "",
+        relationshipOwner: data.relationshipOwner?.trim() || "",
+        followUpDate: data.followUpDate?.trim() || "",
+        notes: data.notes?.trim() || "",
+      }
     };
 
     // Duplicate Check
@@ -233,15 +576,14 @@ export default function OCRReviewModal({
           id={name}
           type={type}
           {...register(name)}
-          className={`h-10 text-sm ${
-            errors[name]
-              ? "border-destructive focus-visible:ring-destructive"
-              : isEdited
+          className={`h-10 text-sm ${errors[name]
+            ? "border-destructive focus-visible:ring-destructive"
+            : isEdited
               ? "border-amber-400 focus-visible:ring-amber-400 font-medium"
               : needsVerification
-              ? "border-amber-300 dark:border-amber-900/60 bg-amber-50/30 dark:bg-amber-950/20"
-              : ""
-          }`}
+                ? "border-amber-300 dark:border-amber-900/60 bg-amber-50/30 dark:bg-amber-950/20"
+                : ""
+            }`}
           placeholder={`Enter ${label.toLowerCase()}`}
         />
         {errors[name] && (
@@ -256,7 +598,7 @@ export default function OCRReviewModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className={savedRecord ? "max-w-md w-[92vw] p-6 sm:p-7 rounded-3xl border border-border shadow-2xl bg-background" : "flex h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-[calc(100vw-1rem)] flex-col gap-0 overflow-hidden rounded-2xl border bg-background p-0 shadow-2xl sm:h-auto sm:max-h-[90dvh] sm:w-[90vw] sm:max-w-[90vw] lg:max-w-6xl"}>
+        <DialogContent className={savedRecord ? "max-w-md w-[92vw] p-6 sm:p-7 rounded-3xl border border-border shadow-2xl bg-background" : "w-[95vw] max-w-[95vw] sm:max-w-[90vw] lg:max-w-6xl max-h-[92vh] sm:max-h-[90vh] p-0 overflow-hidden flex flex-col bg-background rounded-2xl border shadow-2xl"}>
           {/* ── SUCCESS STATE VIEW ──────────────────────────────────── */}
           {savedRecord ? (
             <div className="flex flex-col items-center text-center py-2">
@@ -265,40 +607,66 @@ export default function OCRReviewModal({
               </div>
 
               <div className="space-y-1">
-                <h3 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
-                  Contact Saved Successfully
-                </h3>
-                <p className="text-xs text-muted-foreground max-w-xs">
-                  The verified business card details have been securely saved.
+
+                <div className="flex items-center justify-center gap-2">
+                  <h3 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
+                    Contact Saved Successfully
+                  </h3>
+
+                </div>
+
+                <p className="text-xs text-muted-foreground max-w-xs mx-auto">
+                  The reviewed business card details have been saved to local workspace.
                 </p>
               </div>
 
               {/* Compact Saved Contact Card */}
-              <div className="w-full p-4 rounded-2xl border border-border bg-slate-50 dark:bg-slate-900/50 text-left space-y-1.5 my-5">
-                <h4 className="font-bold text-sm text-foreground">
-                  {savedRecord.verifiedData.fullName || savedRecord.verifiedData.companyName || "Saved Contact"}
-                </h4>
-                {savedRecord.verifiedData.jobTitle && (
-                  <p className="text-xs text-muted-foreground font-medium">
-                    {savedRecord.verifiedData.jobTitle}
-                  </p>
-                )}
-                {savedRecord.verifiedData.companyName && (
-                  <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                    {savedRecord.verifiedData.companyName}
-                  </p>
-                )}
+              <div className="w-full p-4 rounded-2xl border border-border bg-slate-50 dark:bg-slate-900/50 text-left space-y-2 my-4">
+                <div>
+                  <h4 className="font-bold text-sm text-foreground">
+
+                    {savedRecord.verifiedData.fullName || savedRecord.verifiedData.companyName || "Saved Contact"}
+                  </h4>
+                  {savedRecord.verifiedData.jobTitle && (
+                    <p className="text-xs text-slate-900 dark:text-slate-100 font-semibold">
+                      {savedRecord.verifiedData.jobTitle}
+                    </p>
+                  )}
+                  {savedRecord.verifiedData.companyName && (
+                    <p className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                      {savedRecord.verifiedData.companyName}
+                    </p>
+                  )}
+                  {savedRecord.isDemo && (
+                    <span className="text-[10px] font-bold uppercase tracking-wider bg-slate-900/10 text-slate-900 dark:bg-white/10 dark:text-white px-2 py-0.5 rounded-full border border-slate-900/20 dark:border-white/20">
+                      Demo Contact
+                    </span>
+                  )}
+                </div>
+
                 {savedRecord.verifiedData.email && (
-                  <p className="text-xs text-muted-foreground flex items-center gap-1.5 pt-1.5 border-t border-border/50">
+                  <p className="text-xs text-muted-foreground pt-2 border-t border-border/50">
                     ✉ {savedRecord.verifiedData.email}
                   </p>
+                )}
+
+                {savedRecord.verifiedData.meetingContext?.metAtLocation && (
+                  <div className="pt-2 border-t border-border/50 text-[11px] text-slate-600 dark:text-slate-400 space-y-0.5">
+                    <div className="font-semibold text-slate-800 dark:text-slate-200">
+                      Meeting Context:
+                    </div>
+                    <div>📍 Met at: {savedRecord.verifiedData.meetingContext.metAtLocation}</div>
+                    {savedRecord.verifiedData.meetingContext.contactType && (
+                      <div>🏷 Type: {savedRecord.verifiedData.meetingContext.contactType}</div>
+                    )}
+                  </div>
                 )}
               </div>
 
               <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full">
                 <Button
                   size="default"
-                  className="w-full sm:w-1/2 font-semibold text-xs h-10 rounded-xl bg-[#007BC2] text-white hover:bg-[#0064a0] shadow-md shadow-[#007BC2]/20"
+                  className="w-full sm:w-1/2 font-semibold text-xs h-10 rounded-xl bg-slate-900 text-white hover:bg-black dark:bg-white dark:hover:bg-slate-100 dark:text-slate-900 shadow-md shadow-slate-900/20 cursor-pointer"
                   onClick={onSuccess}
                 >
                   Scan Another Card
@@ -307,14 +675,14 @@ export default function OCRReviewModal({
                 <Button
                   variant="outline"
                   size="default"
-                  className="w-full sm:w-1/2 font-semibold text-xs h-10 rounded-xl gap-1.5 border-[#007BC2]/40 text-[#007BC2] bg-[#007BC2]/5 hover:bg-[#007BC2]/15 hover:border-[#007BC2] transition-all"
+                  className="w-full sm:w-1/2 font-semibold text-xs h-10 rounded-xl gap-1.5 border-slate-900/30 dark:border-slate-700 text-slate-900 dark:text-white bg-slate-900/5 dark:bg-slate-800/50 hover:bg-slate-900/10 dark:hover:bg-slate-800 hover:border-slate-900 transition-all cursor-pointer"
                   onClick={() => {
                     setIsOpen(false);
                     onSuccess();
                     navigate("/verified");
                   }}
                 >
-                  View Contacts <ArrowRight className="w-3.5 h-3.5 text-[#007BC2]" />
+                  View Reviewed Contacts <ArrowRight className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
                 </Button>
               </div>
             </div>
@@ -323,12 +691,19 @@ export default function OCRReviewModal({
             <>
               {/* Header */}
               <DialogHeader className="shrink-0 border-b bg-slate-50/50 p-4 pb-3 dark:bg-slate-900/50 sm:p-5 sm:pb-4 md:p-6 md:pb-4">
-                <div className="pr-8">
-                  <DialogTitle className="text-xl md:text-2xl font-bold tracking-tight">
-                    Review Contact
-                  </DialogTitle>
-                  <DialogDescription className="text-xs md:text-sm text-muted-foreground mt-0.5">
-                    Review the information extracted from your business card before saving. Edit any incorrect fields.
+                <div className="pr-8 flex flex-col gap-1">
+                  <div className="flex items-center gap-2">
+                    <DialogTitle className="text-xl md:text-2xl font-bold tracking-tight">
+                      Review Contact
+                    </DialogTitle>
+                    {isDemo && (
+                      <span className="text-[10px] font-bold uppercase tracking-wider bg-slate-900/10 text-slate-900 dark:bg-white/10 dark:text-white px-2.5 py-0.5 rounded-full border border-slate-900/20 dark:border-white/20">
+                        Demo Contact
+                      </span>
+                    )}
+                  </div>
+                  <DialogDescription className="text-xs md:text-sm text-slate-600 dark:text-slate-400">
+                    Please review before saving. OCR can make mistakes. Edit any field as needed.
                   </DialogDescription>
                 </div>
               </DialogHeader>
@@ -347,9 +722,9 @@ export default function OCRReviewModal({
                   <button
                     type="button"
                     onClick={() => setIsZoomImageOpen(true)}
-                    className="absolute right-4 top-4 flex items-center gap-1.5 rounded-xl border border-border bg-background/90 p-2 text-xs font-medium text-foreground opacity-90 shadow-sm backdrop-blur-sm transition-colors hover:bg-background hover:opacity-100"
+                    className="absolute right-4 top-4 flex items-center gap-1.5 rounded-xl border border-border bg-background/90 p-2 text-xs font-medium text-foreground opacity-90 shadow-sm backdrop-blur-sm transition-colors hover:bg-background hover:opacity-100 cursor-pointer"
                   >
-                    <ZoomIn className="w-3.5 h-3.5 text-[#007BC2]" /> Full View
+                    <ZoomIn className="w-3.5 h-3.5 text-slate-900 dark:text-white" /> Full View
                   </button>
                 </div>
 
@@ -360,10 +735,10 @@ export default function OCRReviewModal({
                     onSubmit={handleSubmit(onSubmit)}
                     className="space-y-6"
                   >
-                    {/* Identity Group */}
+                    {/* Section 1: Identity Details */}
                     <div className="space-y-4">
                       <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground border-b pb-1.5">
-                        Identity Details
+                        Extracted Business Card Details
                       </h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="sm:col-span-2">
@@ -371,35 +746,85 @@ export default function OCRReviewModal({
                         </div>
                         {renderField("Company Name", "companyName")}
                         {renderField("Job Title", "jobTitle")}
-                      </div>
-                    </div>
-
-                    {/* Contact Info Group */}
-                    <div className="space-y-4">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground border-b pb-1.5">
-                        Contact Info & Online
-                      </h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {renderField("Email Address", "email", "email")}
                         {renderField("Phone Number", "phone", "tel")}
                         {renderField("Alternate Phone", "alternatePhone", "tel")}
                         {renderField("Website", "website", "text")}
-                      </div>
-                    </div>
-
-                    {/* Location & Notes Group */}
-                    <div className="space-y-4">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground border-b pb-1.5">
-                        Location & Notes
-                      </h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="sm:col-span-2">
                           {renderField("Street Address", "address")}
                         </div>
                         {renderField("City", "city")}
                         {renderField("Country", "country")}
+                      </div>
+                    </div>
+
+                    {/* Section 2: Meeting Context */}
+                    <div className="space-y-4 pt-2">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground border-b pb-1.5 flex items-center justify-between">
+                        <span>Meeting Context (Optional)</span>
+
+                      </h4>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="metAtLocation" className="font-semibold text-xs sm:text-sm">
+                            Met at / Event / Location
+                          </Label>
+                          <Input
+                            id="metAtLocation"
+                            {...register("metAtLocation")}
+                            placeholder="e.g. MRO Aviation Trade Show"
+                            className="h-10 text-sm"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label htmlFor="contactType" className="font-semibold text-xs sm:text-sm text-slate-900 dark:text-slate-100">
+                            Contact Type
+                          </Label>
+                          <ModernContactTypeSelect
+                            value={watch("contactType") || ""}
+                            onChange={(val) => setValue("contactType", val, { shouldDirty: true })}
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label htmlFor="productInterest" className="font-semibold text-xs sm:text-sm">
+                            Product / Interest
+                          </Label>
+                          <Input
+                            id="productInterest"
+                            {...register("productInterest")}
+                            placeholder="e.g. Component Repair & Supply"
+                            className="h-11 text-sm rounded-xl"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label htmlFor="relationshipOwner" className="font-semibold text-xs sm:text-sm">
+                            Relationship Owner / Salesperson
+                          </Label>
+                          <Input
+                            id="relationshipOwner"
+                            {...register("relationshipOwner")}
+                            placeholder="e.g. Lead Sales Exec"
+                            className="h-11 text-sm rounded-xl"
+                          />
+                        </div>
+
+                        <div className="space-y-2 sm:col-span-2">
+                          <Label htmlFor="followUpDate" className="font-semibold text-xs sm:text-sm text-slate-900 dark:text-slate-100">
+                            Suggested Follow-up Date
+                          </Label>
+
+                          <ModernDatePicker
+                            value={watch("followUpDate") || ""}
+                            onChange={(val) => setValue("followUpDate", val, { shouldDirty: true })}
+                          />
+                        </div>
+
                         <div className="sm:col-span-2">
-                          {renderField("Notes", "notes")}
+                          {renderField("Notes & Meeting Context", "notes")}
                         </div>
                       </div>
                     </div>
@@ -414,9 +839,9 @@ export default function OCRReviewModal({
                   variant="outline"
                   onClick={() => setIsOpen(false)}
                   disabled={isSaving}
-                  className="h-10 rounded-xl border-[#007BC2]/40 bg-[#007BC2]/5 px-3 text-xs font-semibold text-[#007BC2] transition-all hover:border-[#007BC2] hover:bg-[#007BC2]/15 sm:px-4"
+                  className="h-10 rounded-xl border-slate-900/30 dark:border-slate-700 bg-slate-900/5 dark:bg-slate-800/50 px-3 text-xs font-semibold text-slate-900 dark:text-white transition-all hover:border-slate-900 hover:bg-slate-900/10 dark:hover:bg-slate-800 sm:px-4 cursor-pointer"
                 >
-                  <X className="w-4 h-4 text-[#007BC2]" /> Cancel
+                  <X className="w-4 h-4 text-slate-900 dark:text-white" /> Cancel
                 </Button>
 
                 <div className="flex items-center gap-2">
@@ -424,16 +849,15 @@ export default function OCRReviewModal({
                     type="submit"
                     form="ocr-review-form"
                     disabled={isSaving}
-                    className="h-10 rounded-xl bg-[#007BC2] px-4 text-xs font-bold text-white shadow-md shadow-[#007BC2]/20 hover:bg-[#0064a0] sm:px-6"
+                    className="h-10 rounded-xl bg-slate-900 hover:bg-black dark:bg-white dark:hover:bg-slate-100 px-4 text-xs font-bold text-white dark:text-slate-900 shadow-md shadow-slate-900/20 sm:px-6 cursor-pointer"
                   >
-
                     {isSaving ? (
                       <>
                         <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> Saving…
                       </>
                     ) : (
                       <>
-                        <Save className="w-4 h-4 mr-2" /> Save Contact
+                        <Save className="w-4 h-4 mr-2" /> Save reviewed contact
                       </>
                     )}
                   </Button>

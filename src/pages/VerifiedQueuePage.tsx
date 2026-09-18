@@ -54,13 +54,25 @@ function CardThumb({
   const [url, setUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!record.originalImage) return;
-    const objectUrl = URL.createObjectURL(record.originalImage);
-    setUrl(objectUrl);
+    if (record.isDemo) {
+      setUrl("/democard.png");
+      return;
+    }
+    if (!record.originalImage || record.originalImage.size < 100) {
+      setUrl("/democard.png");
+      return;
+    }
+    let objectUrl: string | null = null;
+    try {
+      objectUrl = URL.createObjectURL(record.originalImage);
+      setUrl(objectUrl);
+    } catch {
+      setUrl("/democard.png");
+    }
     return () => {
-      URL.revokeObjectURL(objectUrl);
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [record.id, record.originalImage]);
+  }, [record.id, record.originalImage, record.isDemo]);
 
   return (
     <button
@@ -69,17 +81,14 @@ function CardThumb({
       title="Click to preview card"
       className="w-12 h-8 rounded-md border border-border overflow-hidden shrink-0 bg-muted hover:opacity-80 hover:ring-2 hover:ring-primary/40 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
     >
-      {url ? (
-        <img
-          src={url}
-          alt="Business card"
-          className="w-full h-full object-cover"
-        />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center">
-          <Eye className="w-3 h-3 text-muted-foreground/50" />
-        </div>
-      )}
+      <img
+        src={url || "/democard.png"}
+        alt="Business card"
+        onError={(e) => {
+          (e.target as HTMLImageElement).src = "/democard.png";
+        }}
+        className="w-full h-full object-cover"
+      />
     </button>
   );
 }
@@ -241,40 +250,46 @@ export default function VerifiedQueuePage() {
       {/* ── Page Header ──────────────────────────────────────────── */}
       <div className="space-y-1.5">
         <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-foreground">
-            Verified Contacts
-          </h1>
+          <div>
+            <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-foreground">
+              Reviewed Contacts
+            </h1>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+              Review, filter, edit and export your contacts. <span className="font-medium text-slate-500">Stored in this demo browser only.</span>
+            </p>
+          </div>
 
           {/* Export buttons */}
-          <div className="flex w-full items-center gap-2 sm:w-auto sm:shrink-0">
-            {selectedIds.size > 0 && (
+          <div className="flex flex-col sm:items-end gap-1 shrink-0">
+            <div className="flex w-full items-center gap-2 sm:w-auto sm:shrink-0">
+              {selectedIds.size > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-10 min-w-0 flex-1 rounded-xl border-slate-900/30 dark:border-slate-700 px-2.5 text-xs font-semibold text-slate-900 dark:text-white bg-slate-900/5 dark:bg-slate-800/50 hover:bg-slate-900/10 dark:hover:bg-slate-800 sm:h-9 sm:flex-none sm:px-3 sm:text-sm cursor-pointer"
+                  onClick={() => handleExport(true)}
+                >
+                  <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5 text-slate-900 dark:text-white" />
+                  <span className="truncate">Export Selected</span>
+                  <span className="ml-1 sm:ml-1.5 bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-[10px] sm:text-xs rounded-full px-1.5 py-0.5 leading-none font-bold">
+                    {selectedIds.size}
+                  </span>
+                </Button>
+              )}
               <Button
-                variant="outline"
                 size="sm"
-                className="h-10 min-w-0 flex-1 rounded-xl border-[#007BC2]/40 px-2.5 text-xs font-semibold text-[#007BC2] hover:bg-[#007BC2]/10 sm:h-9 sm:flex-none sm:px-3 sm:text-sm"
-                onClick={() => handleExport(true)}
+                className="h-10 min-w-0 flex-1 rounded-xl bg-slate-900 hover:bg-black dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 px-2.5 text-xs font-semibold shadow-xs sm:h-9 sm:flex-none sm:px-3 sm:text-sm cursor-pointer"
+                onClick={() => handleExport(false)}
               >
-                <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5 text-[#007BC2]" />
-                <span className="truncate">Export Selected</span>
-                <span className="ml-1 sm:ml-1.5 bg-[#007BC2] text-white text-[10px] sm:text-xs rounded-full px-1.5 py-0.5 leading-none font-bold">
-                  {selectedIds.size}
-                </span>
+                <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5 text-white dark:text-slate-900" />
+                <span className="truncate">Export demo contacts</span>
               </Button>
-            )}
-            <Button
-              size="sm"
-              className="h-10 min-w-0 flex-1 rounded-xl bg-[#007BC2] px-2.5 text-xs font-semibold text-white shadow-xs hover:bg-[#0064a0] sm:h-9 sm:flex-none sm:px-3 sm:text-sm"
-              onClick={() => handleExport(false)}
-            >
-              <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5 text-white" />
-              <span className="truncate">Export to Excel</span>
-            </Button>
+            </div>
+            <span className="text-[10px] text-muted-foreground self-end font-medium">
+              Stored in this demo browser only.
+            </span>
           </div>
         </div>
-
-        <p className="text-xs sm:text-sm text-muted-foreground">
-          Review, filter, edit and export your verified business card contacts.
-        </p>
       </div>
 
 
@@ -283,34 +298,35 @@ export default function VerifiedQueuePage() {
 
         {/* Filter Toolbar */}
         <div className="space-y-3 border-b bg-muted/30 p-3 sm:p-5">
-          {/* Row 1: Search + active filter badge */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="relative min-w-0 flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+          {/* Row 1: Search + Active Filter Badges */}
+          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="relative flex-1">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Search contacts…"
+                placeholder="Search contacts..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 h-10 bg-background border-border focus-visible:ring-primary/30 text-sm w-full"
+                className="pl-10 h-10 rounded-xl bg-background border-border text-sm"
               />
               {search && (
                 <button
                   onClick={() => setSearch("")}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
-                  <X className="h-3.5 w-3.5" />
+                  <X className="w-4 h-4" />
                 </button>
               )}
             </div>
 
+            {/* Clear All Filters button */}
             {activeFilterCount > 0 && (
               <button
                 onClick={resetFilters}
-                className="flex h-10 shrink-0 items-center gap-1.5 rounded-lg border bg-background px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:px-3"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors self-start sm:self-auto px-2 py-1 rounded-lg hover:bg-muted"
               >
                 <X className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Reset</span>
-                <span className="bg-primary text-primary-foreground text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none">
+                Reset filters
+                <span className="rounded-full bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-[10px] font-bold w-4 h-4 flex items-center justify-center">
                   {activeFilterCount}
                 </span>
               </button>
@@ -323,11 +339,11 @@ export default function VerifiedQueuePage() {
             <Select value={selectedCity} onValueChange={(val) => val && setSelectedCity(val)}>
               <SelectTrigger
                 className={`h-10 w-full min-w-0 text-xs font-semibold rounded-xl bg-background border-border transition-colors gap-1.5 ${selectedCity !== "ALL"
-                    ? "border-[#007BC2] text-[#007BC2] bg-[#007BC2]/10 font-bold"
-                    : "hover:border-[#007BC2]/50"
+                    ? "border-slate-900 text-slate-900 bg-slate-900/10 dark:border-white dark:text-white dark:bg-white/10 font-bold"
+                    : "hover:border-slate-900/50 dark:hover:border-slate-400"
                   }`}
               >
-                <MapPin className={`w-3.5 h-3.5 shrink-0 ${selectedCity !== "ALL" ? "text-[#007BC2]" : "text-muted-foreground"}`} />
+                <MapPin className={`w-3.5 h-3.5 shrink-0 ${selectedCity !== "ALL" ? "text-slate-900 dark:text-white" : "text-muted-foreground"}`} />
                 <SelectValue placeholder="City: All" />
               </SelectTrigger>
               <SelectContent side="bottom" sideOffset={6} align="start" className="min-w-[160px]">
@@ -344,11 +360,11 @@ export default function VerifiedQueuePage() {
             <Select value={selectedCountry} onValueChange={(val) => val && setSelectedCountry(val)}>
               <SelectTrigger
                 className={`h-10 w-full min-w-0 text-xs font-semibold rounded-xl bg-background border-border transition-colors gap-1.5 ${selectedCountry !== "ALL"
-                    ? "border-[#007BC2] text-[#007BC2] bg-[#007BC2]/10 font-bold"
-                    : "hover:border-[#007BC2]/50"
+                    ? "border-slate-900 text-slate-900 bg-slate-900/10 dark:border-white dark:text-white dark:bg-white/10 font-bold"
+                    : "hover:border-slate-900/50 dark:hover:border-slate-400"
                   }`}
               >
-                <ListFilter className={`w-3.5 h-3.5 shrink-0 ${selectedCountry !== "ALL" ? "text-[#007BC2]" : "text-muted-foreground"}`} />
+                <ListFilter className={`w-3.5 h-3.5 shrink-0 ${selectedCountry !== "ALL" ? "text-slate-900 dark:text-white" : "text-muted-foreground"}`} />
                 <SelectValue placeholder="Country: All" />
               </SelectTrigger>
               <SelectContent side="bottom" sideOffset={6} align="start" className="min-w-[180px]">
@@ -363,7 +379,7 @@ export default function VerifiedQueuePage() {
 
             {/* Sort */}
             <Select value={sortBy} onValueChange={(val) => val && setSortBy(val)}>
-              <SelectTrigger className="col-span-2 h-10 w-full min-w-0 gap-1.5 rounded-xl border-border bg-background text-xs font-semibold transition-colors hover:border-[#007BC2]/50 min-[520px]:col-span-1">
+              <SelectTrigger className="col-span-2 h-10 w-full min-w-0 gap-1.5 rounded-xl border-border bg-background text-xs font-semibold transition-colors hover:border-slate-900/50 dark:hover:border-slate-400 min-[520px]:col-span-1">
                 <ArrowUpDown className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
                 <SelectValue placeholder="Sort: Newest" />
               </SelectTrigger>
@@ -413,7 +429,7 @@ export default function VerifiedQueuePage() {
             {records.length === 0 ? (
               <Button
                 size="default"
-                className="mt-2 h-11 px-7 rounded-xl font-semibold text-xs bg-[#007BC2] hover:bg-[#0064a0] text-white shadow-md shadow-[#007BC2]/20"
+                className="mt-2 h-11 px-7 rounded-xl font-semibold text-xs bg-slate-900 hover:bg-black dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 shadow-md shadow-slate-900/20 cursor-pointer"
                 onClick={() => navigate("/")}
               >
                 Scan Your First Card
@@ -500,8 +516,15 @@ export default function VerifiedQueuePage() {
                               }}
                             />
                             <div className="min-w-0">
-                              <div className="font-semibold text-foreground truncate">
-                                {v.fullName || "—"}
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <div className="font-semibold text-foreground truncate">
+                                  {v.fullName || "—"}
+                                </div>
+                                {record.isDemo && (
+                                  <span className="shrink-0 text-[9px] font-bold uppercase tracking-wider bg-slate-900/10 text-slate-900 dark:bg-white/10 dark:text-white px-2 py-0.5 rounded-full border border-slate-900/20 dark:border-white/20">
+                                    Demo Contact
+                                  </span>
+                                )}
                               </div>
                               {v.jobTitle && (
                                 <div className="text-xs text-muted-foreground truncate mt-0.5">
@@ -572,7 +595,7 @@ export default function VerifiedQueuePage() {
                               variant="ghost"
                               size="icon"
                               title="View Card"
-                              className="h-8 w-8 rounded-lg hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/30 dark:hover:text-blue-400"
+                              className="h-8 w-8 rounded-lg hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-white cursor-pointer"
                               onClick={() => {
                                 setViewingRecord(record);
                                 setIsViewModalOpen(true);
@@ -584,7 +607,7 @@ export default function VerifiedQueuePage() {
                               variant="ghost"
                               size="icon"
                               title="Edit Contact"
-                              className="h-8 w-8 rounded-lg hover:bg-primary/10 hover:text-primary"
+                              className="h-8 w-8 rounded-lg hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-white cursor-pointer"
                               onClick={() => {
                                 setEditingRecord(record);
                                 setIsEditModalOpen(true);
@@ -596,7 +619,7 @@ export default function VerifiedQueuePage() {
                               variant="ghost"
                               size="icon"
                               title="Delete Contact"
-                              className="h-8 w-8 rounded-lg hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/30 dark:hover:text-red-400"
+                              className="h-8 w-8 rounded-lg hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/30 dark:hover:text-red-400 cursor-pointer"
                               onClick={() => {
                                 setDeletingRecord(record);
                                 setIsDeleteModalOpen(true);
@@ -620,7 +643,7 @@ export default function VerifiedQueuePage() {
                     : `${filteredRecords.length} of ${records.length} contacts`}
                 </span>
                 {selectedIds.size > 0 && (
-                  <span className="font-medium text-primary">
+                  <span className="font-medium text-slate-900 dark:text-white">
                     {selectedIds.size} selected
                   </span>
                 )}
@@ -633,7 +656,7 @@ export default function VerifiedQueuePage() {
               <div className="flex items-center justify-between gap-3 border-b bg-muted/20 px-3 py-2.5 sm:px-4">
                 <button
                   onClick={handleSelectAll}
-                  className="flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  className="flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 >
                   <Checkbox
                     checked={allSelected}
@@ -658,7 +681,7 @@ export default function VerifiedQueuePage() {
                     <div
                       key={record.id}
                       className={`rounded-xl border transition-all ${isSelected
-                        ? "border-primary/40 bg-primary/5 shadow-sm"
+                        ? "border-slate-900/40 bg-slate-900/5 dark:border-white/40 dark:bg-white/5 shadow-sm"
                         : "border-border bg-card shadow-sm hover:shadow-md hover:border-border/80"
                         }`}
                     >
@@ -678,8 +701,15 @@ export default function VerifiedQueuePage() {
                           }}
                         />
                         <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-foreground text-sm truncate">
-                            {v.fullName || "—"}
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <div className="font-semibold text-foreground text-sm truncate">
+                              {v.fullName || "—"}
+                            </div>
+                            {record.isDemo && (
+                              <span className="shrink-0 text-[9px] font-bold uppercase tracking-wider bg-slate-900/10 text-slate-900 dark:bg-white/10 dark:text-white px-2 py-0.5 rounded-full border border-slate-900/20 dark:border-white/20">
+                                Demo Contact
+                              </span>
+                            )}
                           </div>
                           {v.jobTitle && (
                             <div className="text-xs text-muted-foreground truncate mt-0.5">
@@ -724,31 +754,31 @@ export default function VerifiedQueuePage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="h-9 w-full min-w-0 gap-1 rounded-xl border-[#007BC2]/30 bg-[#007BC2]/5 px-1.5 text-[11px] font-semibold text-[#007BC2] hover:bg-[#007BC2]/15 sm:gap-1.5 sm:px-3 sm:text-xs"
+                          className="h-9 w-full min-w-0 gap-1 rounded-xl border-slate-900/30 bg-slate-900/5 text-slate-900 dark:border-slate-700 dark:bg-slate-800/50 dark:text-white px-1.5 text-[11px] font-semibold hover:bg-slate-900/10 dark:hover:bg-slate-800 sm:gap-1.5 sm:px-3 sm:text-xs cursor-pointer"
                           onClick={() => {
                             setViewingRecord(record);
                             setIsViewModalOpen(true);
                           }}
                         >
-                          <Eye className="w-3.5 h-3.5 text-[#007BC2]" />
+                          <Eye className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
                           View
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
-                          className="h-9 w-full min-w-0 gap-1 rounded-xl border-[#007BC2]/30 bg-[#007BC2]/5 px-1.5 text-[11px] font-semibold text-[#007BC2] hover:bg-[#007BC2]/15 sm:gap-1.5 sm:px-3 sm:text-xs"
+                          className="h-9 w-full min-w-0 gap-1 rounded-xl border-slate-900/30 bg-slate-900/5 text-slate-900 dark:border-slate-700 dark:bg-slate-800/50 dark:text-white px-1.5 text-[11px] font-semibold hover:bg-slate-900/10 dark:hover:bg-slate-800 sm:gap-1.5 sm:px-3 sm:text-xs cursor-pointer"
                           onClick={() => {
                             setEditingRecord(record);
                             setIsEditModalOpen(true);
                           }}
                         >
-                          <Edit className="w-3.5 h-3.5 text-[#007BC2]" />
+                          <Edit className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
                           Edit
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
-                          className="h-9 w-full min-w-0 gap-1 rounded-xl border-red-200 bg-red-50/40 px-1.5 text-[11px] font-semibold text-red-600 hover:border-red-300 hover:bg-red-50 dark:border-red-900/50 dark:bg-red-950/20 dark:hover:bg-red-950/40 sm:gap-1.5 sm:px-3 sm:text-xs"
+                          className="h-9 w-full min-w-0 gap-1 rounded-xl border-red-200 bg-red-50/40 px-1.5 text-[11px] font-semibold text-red-600 hover:border-red-300 hover:bg-red-50 dark:border-red-900/50 dark:bg-red-950/20 dark:hover:bg-red-950/40 sm:gap-1.5 sm:px-3 sm:text-xs cursor-pointer"
                           onClick={() => {
                             setDeletingRecord(record);
                             setIsDeleteModalOpen(true);
@@ -806,7 +836,7 @@ export default function VerifiedQueuePage() {
               variant="outline"
               size="sm"
               onClick={() => setIsDeleteModalOpen(false)}
-              className="h-11 w-full rounded-xl border-[#007BC2]/40 bg-[#007BC2]/5 px-4 text-sm font-semibold text-[#007BC2] hover:border-[#007BC2] hover:bg-[#007BC2]/15 sm:w-auto sm:min-w-[110px]"
+              className="h-11 w-full rounded-xl border-slate-900/30 bg-slate-900/5 px-4 text-sm font-semibold text-slate-900 dark:border-slate-700 dark:bg-slate-800/50 dark:text-white hover:border-slate-900 hover:bg-slate-900/10 dark:hover:bg-slate-800 sm:w-auto sm:min-w-[110px] cursor-pointer"
             >
               Cancel
             </Button>
