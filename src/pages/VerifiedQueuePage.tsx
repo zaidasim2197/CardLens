@@ -200,7 +200,7 @@ export default function VerifiedQueuePage() {
     }
     exportToExcel(
       data,
-      `verified-contacts-${new Date().toISOString().split("T")[0]}.xlsx`
+      `CardSnap-demo-contacts-${new Date().toISOString().split("T")[0]}.xlsx`
     );
     toast.success(`Exported ${data.length} contacts successfully`);
   };
@@ -241,9 +241,14 @@ export default function VerifiedQueuePage() {
       {/* ── Page Header ──────────────────────────────────────────── */}
       <div className="space-y-1.5">
         <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-foreground">
-            Verified Contacts
-          </h1>
+          <div>
+            <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-foreground">
+              Reviewed contacts
+            </h1>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Stored in this demo browser only.
+            </p>
+          </div>
 
           {/* Export buttons */}
           <div className="flex w-full items-center gap-2 sm:w-auto sm:shrink-0">
@@ -251,29 +256,29 @@ export default function VerifiedQueuePage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="h-10 min-w-0 flex-1 rounded-xl border-[#007BC2]/40 px-2.5 text-xs font-semibold text-[#007BC2] hover:bg-[#007BC2]/10 sm:h-9 sm:flex-none sm:px-3 sm:text-sm"
+                className="h-10 min-w-0 flex-1 rounded-xl border-brand/40 px-2.5 text-xs font-semibold text-brand hover:bg-brand/10 sm:h-9 sm:flex-none sm:px-3 sm:text-sm"
                 onClick={() => handleExport(true)}
               >
-                <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5 text-[#007BC2]" />
+                <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5 text-brand" />
                 <span className="truncate">Export Selected</span>
-                <span className="ml-1 sm:ml-1.5 bg-[#007BC2] text-white text-[10px] sm:text-xs rounded-full px-1.5 py-0.5 leading-none font-bold">
+                <span className="ml-1 sm:ml-1.5 bg-brand text-white text-[10px] sm:text-xs rounded-full px-1.5 py-0.5 leading-none font-bold">
                   {selectedIds.size}
                 </span>
               </Button>
             )}
             <Button
               size="sm"
-              className="h-10 min-w-0 flex-1 rounded-xl bg-[#007BC2] px-2.5 text-xs font-semibold text-white shadow-xs hover:bg-[#0064a0] sm:h-9 sm:flex-none sm:px-3 sm:text-sm"
+              className="h-10 min-w-0 flex-1 rounded-xl bg-brand px-3 text-xs font-semibold text-white shadow-xs hover:bg-brand-hover sm:h-9 sm:flex-none sm:px-3.5 sm:text-sm"
               onClick={() => handleExport(false)}
             >
               <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5 text-white" />
-              <span className="truncate">Export to Excel</span>
+              <span className="truncate">Export demo contacts</span>
             </Button>
           </div>
         </div>
 
         <p className="text-xs sm:text-sm text-muted-foreground">
-          Review, filter, edit and export your verified business card contacts.
+          Review, filter, edit and export your contact records.
         </p>
       </div>
 
@@ -323,11 +328,11 @@ export default function VerifiedQueuePage() {
             <Select value={selectedCity} onValueChange={(val) => val && setSelectedCity(val)}>
               <SelectTrigger
                 className={`h-10 w-full min-w-0 text-xs font-semibold rounded-xl bg-background border-border transition-colors gap-1.5 ${selectedCity !== "ALL"
-                    ? "border-[#007BC2] text-[#007BC2] bg-[#007BC2]/10 font-bold"
-                    : "hover:border-[#007BC2]/50"
+                    ? "border-brand text-brand bg-brand/10 font-bold"
+                    : "hover:border-brand/50"
                   }`}
               >
-                <MapPin className={`w-3.5 h-3.5 shrink-0 ${selectedCity !== "ALL" ? "text-[#007BC2]" : "text-muted-foreground"}`} />
+                <MapPin className={`w-3.5 h-3.5 shrink-0 ${selectedCity !== "ALL" ? "text-brand" : "text-muted-foreground"}`} />
                 <SelectValue placeholder="City: All" />
               </SelectTrigger>
               <SelectContent side="bottom" sideOffset={6} align="start" className="min-w-[160px]">
@@ -344,11 +349,11 @@ export default function VerifiedQueuePage() {
             <Select value={selectedCountry} onValueChange={(val) => val && setSelectedCountry(val)}>
               <SelectTrigger
                 className={`h-10 w-full min-w-0 text-xs font-semibold rounded-xl bg-background border-border transition-colors gap-1.5 ${selectedCountry !== "ALL"
-                    ? "border-[#007BC2] text-[#007BC2] bg-[#007BC2]/10 font-bold"
-                    : "hover:border-[#007BC2]/50"
+                    ? "border-brand text-brand bg-brand/10 font-bold"
+                    : "hover:border-brand/50"
                   }`}
               >
-                <ListFilter className={`w-3.5 h-3.5 shrink-0 ${selectedCountry !== "ALL" ? "text-[#007BC2]" : "text-muted-foreground"}`} />
+                <ListFilter className={`w-3.5 h-3.5 shrink-0 ${selectedCountry !== "ALL" ? "text-brand" : "text-muted-foreground"}`} />
                 <SelectValue placeholder="Country: All" />
               </SelectTrigger>
               <SelectContent side="bottom" sideOffset={6} align="start" className="min-w-[180px]">
@@ -363,7 +368,7 @@ export default function VerifiedQueuePage() {
 
             {/* Sort */}
             <Select value={sortBy} onValueChange={(val) => val && setSortBy(val)}>
-              <SelectTrigger className="col-span-2 h-10 w-full min-w-0 gap-1.5 rounded-xl border-border bg-background text-xs font-semibold transition-colors hover:border-[#007BC2]/50 min-[520px]:col-span-1">
+              <SelectTrigger className="col-span-2 h-10 w-full min-w-0 gap-1.5 rounded-xl border-border bg-background text-xs font-semibold transition-colors hover:border-brand/50 min-[520px]:col-span-1">
                 <ArrowUpDown className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
                 <SelectValue placeholder="Sort: Newest" />
               </SelectTrigger>
@@ -413,7 +418,7 @@ export default function VerifiedQueuePage() {
             {records.length === 0 ? (
               <Button
                 size="default"
-                className="mt-2 h-11 px-7 rounded-xl font-semibold text-xs bg-[#007BC2] hover:bg-[#0064a0] text-white shadow-md shadow-[#007BC2]/20"
+                className="mt-2 h-11 px-7 rounded-xl font-semibold text-xs bg-brand hover:bg-brand-hover text-white shadow-md shadow-brand/20"
                 onClick={() => navigate("/")}
               >
                 Scan Your First Card
@@ -572,7 +577,7 @@ export default function VerifiedQueuePage() {
                               variant="ghost"
                               size="icon"
                               title="View Card"
-                              className="h-8 w-8 rounded-lg hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/30 dark:hover:text-blue-400"
+                              className="h-8 w-8 rounded-lg hover:bg-muted hover:text-foreground dark:hover:bg-muted dark:hover:text-foreground"
                               onClick={() => {
                                 setViewingRecord(record);
                                 setIsViewModalOpen(true);
@@ -724,25 +729,25 @@ export default function VerifiedQueuePage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="h-9 w-full min-w-0 gap-1 rounded-xl border-[#007BC2]/30 bg-[#007BC2]/5 px-1.5 text-[11px] font-semibold text-[#007BC2] hover:bg-[#007BC2]/15 sm:gap-1.5 sm:px-3 sm:text-xs"
+                          className="h-9 w-full min-w-0 gap-1 rounded-xl border-brand/30 bg-brand/5 px-1.5 text-[11px] font-semibold text-brand hover:bg-brand/15 sm:gap-1.5 sm:px-3 sm:text-xs"
                           onClick={() => {
                             setViewingRecord(record);
                             setIsViewModalOpen(true);
                           }}
                         >
-                          <Eye className="w-3.5 h-3.5 text-[#007BC2]" />
+                          <Eye className="w-3.5 h-3.5 text-brand" />
                           View
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
-                          className="h-9 w-full min-w-0 gap-1 rounded-xl border-[#007BC2]/30 bg-[#007BC2]/5 px-1.5 text-[11px] font-semibold text-[#007BC2] hover:bg-[#007BC2]/15 sm:gap-1.5 sm:px-3 sm:text-xs"
+                          className="h-9 w-full min-w-0 gap-1 rounded-xl border-brand/30 bg-brand/5 px-1.5 text-[11px] font-semibold text-brand hover:bg-brand/15 sm:gap-1.5 sm:px-3 sm:text-xs"
                           onClick={() => {
                             setEditingRecord(record);
                             setIsEditModalOpen(true);
                           }}
                         >
-                          <Edit className="w-3.5 h-3.5 text-[#007BC2]" />
+                          <Edit className="w-3.5 h-3.5 text-brand" />
                           Edit
                         </Button>
                         <Button
@@ -788,16 +793,10 @@ export default function VerifiedQueuePage() {
             </div>
             <div className="space-y-1">
               <DialogTitle className="text-base font-semibold">
-                Delete Contact
+                Delete this demo record?
               </DialogTitle>
               <DialogDescription className="text-sm text-muted-foreground leading-relaxed">
-                Are you sure you want to delete{" "}
-                <span className="font-semibold text-foreground">
-                  {deletingRecord?.verifiedData.fullName ||
-                    deletingRecord?.verifiedData.companyName ||
-                    "this contact"}
-                </span>
-                ? This action cannot be undone.
+                This only removes the record stored in this browser.
               </DialogDescription>
             </div>
           </DialogHeader>
@@ -806,7 +805,7 @@ export default function VerifiedQueuePage() {
               variant="outline"
               size="sm"
               onClick={() => setIsDeleteModalOpen(false)}
-              className="h-11 w-full rounded-xl border-[#007BC2]/40 bg-[#007BC2]/5 px-4 text-sm font-semibold text-[#007BC2] hover:border-[#007BC2] hover:bg-[#007BC2]/15 sm:w-auto sm:min-w-[110px]"
+              className="h-11 w-full rounded-xl border-brand/40 bg-brand/5 px-4 text-sm font-semibold text-brand hover:border-brand hover:bg-brand/15 sm:w-auto sm:min-w-[110px]"
             >
               Cancel
             </Button>
@@ -814,9 +813,9 @@ export default function VerifiedQueuePage() {
               variant="destructive"
               size="sm"
               onClick={confirmDelete}
-              className="h-11 w-full rounded-xl px-4 text-sm font-semibold sm:w-auto sm:min-w-[130px]"
+              className="h-11 w-full rounded-xl px-4 text-sm font-semibold sm:w-auto sm:min-w-[140px]"
             >
-              Delete Contact
+              Delete demo record
             </Button>
           </DialogFooter>
         </DialogContent>

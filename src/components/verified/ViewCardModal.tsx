@@ -43,7 +43,7 @@ export default function ViewCardModal({ isOpen, setIsOpen, record }: Props) {
         <DialogHeader className="p-4 sm:p-6 pb-4 border-b bg-slate-50/50 dark:bg-slate-900/50 shrink-0">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pr-8">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="bg-[#007BC2]/10 p-2 rounded-xl text-[#007BC2] shrink-0">
+              <div className="bg-brand/10 p-2 rounded-xl text-brand shrink-0">
                 <Eye className="w-5 h-5" />
               </div>
               <div className="min-w-0">
@@ -60,9 +60,9 @@ export default function ViewCardModal({ isOpen, setIsOpen, record }: Props) {
                 variant="outline"
                 size="sm"
                 onClick={handleDownloadImage}
-                className="h-8 sm:h-9 px-3 text-xs font-semibold rounded-xl border-[#007BC2]/40 text-[#007BC2] bg-[#007BC2]/5 hover:bg-[#007BC2]/15 hover:border-[#007BC2] transition-all gap-1.5 shrink-0 self-start sm:self-auto"
+                className="h-8 sm:h-9 px-3 text-xs font-semibold rounded-xl border-brand/40 text-brand bg-brand/5 hover:bg-brand/15 hover:border-brand transition-all gap-1.5 shrink-0 self-start sm:self-auto"
               >
-                <Download className="w-3.5 h-3.5 text-[#007BC2]" /> Download Card
+                <Download className="w-3.5 h-3.5 text-brand" /> Download Card
               </Button>
             )}
           </div>
@@ -86,28 +86,28 @@ export default function ViewCardModal({ isOpen, setIsOpen, record }: Props) {
           <div className="lg:w-1/2 overflow-y-auto p-4 sm:p-6 space-y-6 bg-card">
             <div>
               <h3 className="text-xl sm:text-2xl font-bold text-foreground">{vData.fullName || "—"}</h3>
-              <p className="text-sm font-medium text-[#007BC2] mt-0.5">{vData.jobTitle || "No Title Specified"}</p>
+              <p className="text-sm font-medium text-brand mt-0.5">{vData.jobTitle || "No Title Specified"}</p>
               <p className="text-sm text-muted-foreground">{vData.companyName || "No Company Specified"}</p>
             </div>
 
             <div className="space-y-3 pt-2 text-sm border-t">
               {vData.email && (
                 <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300">
-                  <Mail className="w-4 h-4 text-[#007BC2] shrink-0" />
+                  <Mail className="w-4 h-4 text-brand shrink-0" />
                   <a href={`mailto:${vData.email}`} className="hover:underline truncate">{vData.email}</a>
                 </div>
               )}
 
               {vData.phone && (
                 <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300">
-                  <Phone className="w-4 h-4 text-[#007BC2] shrink-0" />
+                  <Phone className="w-4 h-4 text-brand shrink-0" />
                   <span>{vData.phone} {vData.alternatePhone && ` / ${vData.alternatePhone}`}</span>
                 </div>
               )}
 
               {vData.website && (
                 <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300">
-                  <Globe className="w-4 h-4 text-[#007BC2] shrink-0" />
+                  <Globe className="w-4 h-4 text-brand shrink-0" />
                   <a href={vData.website.startsWith("http") ? vData.website : `https://${vData.website}`} target="_blank" rel="noreferrer" className="hover:underline truncate">
                     {vData.website}
                   </a>
@@ -116,7 +116,7 @@ export default function ViewCardModal({ isOpen, setIsOpen, record }: Props) {
 
               {(vData.address || vData.city || vData.country) && (
                 <div className="flex items-start gap-3 text-slate-700 dark:text-slate-300">
-                  <MapPin className="w-4 h-4 text-[#007BC2] shrink-0 mt-0.5" />
+                  <MapPin className="w-4 h-4 text-brand shrink-0 mt-0.5" />
                   <div>
                     {vData.address && <div>{vData.address}</div>}
                     <div>
@@ -140,9 +140,9 @@ export default function ViewCardModal({ isOpen, setIsOpen, record }: Props) {
           <Button
             variant="outline"
             onClick={() => setIsOpen(false)}
-            className="h-9 px-4 text-xs sm:text-sm font-semibold rounded-xl border-[#007BC2]/40 text-[#007BC2] bg-[#007BC2]/5 hover:bg-[#007BC2]/15 hover:border-[#007BC2] transition-all gap-1.5"
+            className="h-9 px-4 text-xs sm:text-sm font-semibold rounded-xl border-brand/40 text-brand bg-brand/5 hover:bg-brand/15 hover:border-brand transition-all gap-1.5"
           >
-            <X className="w-4 h-4 text-[#007BC2]" /> Close
+            <X className="w-4 h-4 text-brand" /> Close
           </Button>
         </div>
       </DialogContent>

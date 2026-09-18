@@ -10,6 +10,16 @@ export interface OCRData {
   city: string;
   country: string;
   notes: string;
+  
+  // Meeting context (optional relationship details)
+  metAt?: string;
+  contactType?: string;
+  interest?: string;
+  relationshipOwner?: string;
+  followUpDate?: string;
+  
+  // Flag for deterministic demo
+  isDemo?: boolean;
 }
 
 export type RecordStatus = 
@@ -19,7 +29,7 @@ export type RecordStatus =
 
 export interface ContactRecord {
   id: string; // uuid
-  originalImage: Blob; // The actual image data
+  originalImage?: Blob; // The actual image data (optional for manual/synthetic entries)
   originalFileName: string;
   createdAt: string; // ISO date
   verifiedAt?: string;
@@ -29,5 +39,6 @@ export interface ContactRecord {
   verifiedData: OCRData;
   
   status: RecordStatus;
+  isDemo?: boolean;
 }
 

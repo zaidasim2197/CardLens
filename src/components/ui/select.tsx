@@ -117,7 +117,7 @@ function SelectItem({
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        "relative flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-xs font-semibold outline-none select-none focus:bg-[#007BC2]/10 focus:text-[#007BC2] text-foreground transition-colors data-disabled:pointer-events-none data-disabled:opacity-50",
+        "relative flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-xs font-semibold outline-none select-none focus:bg-brand/10 focus:text-brand text-foreground transition-colors data-disabled:pointer-events-none data-disabled:opacity-50",
         className
       )}
       {...props}
@@ -127,7 +127,7 @@ function SelectItem({
       </SelectPrimitive.ItemText>
       <SelectPrimitive.ItemIndicator
         render={
-          <span className="pointer-events-none flex size-4 items-center justify-center text-[#007BC2]" />
+          <span className="pointer-events-none flex size-4 items-center justify-center text-brand" />
         }
       >
         <CheckIcon className="pointer-events-none w-3.5 h-3.5 stroke-[2.5]" />

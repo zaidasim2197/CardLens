@@ -32,60 +32,66 @@ export default function DuplicateWarningModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[480px] p-6 rounded-2xl">
-        <DialogHeader className="space-y-2">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
+      <DialogContent className="w-[92vw] sm:max-w-[490px] p-5 sm:p-6 rounded-2xl sm:rounded-3xl border border-border shadow-2xl bg-background max-h-[90dvh] overflow-y-auto">
+        <DialogHeader className="space-y-2 text-left">
+          <div className="flex items-start gap-3">
+            <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5">
               <AlertTriangle className="w-5 h-5" />
             </div>
             <div>
-              <DialogTitle className="text-lg font-bold text-foreground">
-                Possible Duplicate Contact
+              <DialogTitle className="text-base sm:text-lg font-bold text-foreground leading-snug">
+                Possible existing contact found.
               </DialogTitle>
-              <DialogDescription className="text-xs text-muted-foreground mt-0.5">
-                {matchReason || "We found an existing contact with similar information."}
+              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-1 leading-relaxed">
+                Please review it before creating a second record.
               </DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
+        {/* Clear Match Reason Banner */}
+        <div className="mt-2 p-3 rounded-xl bg-amber-500/10 border border-amber-300/60 dark:border-amber-900/60 text-xs text-amber-900 dark:text-amber-200 font-medium flex items-center gap-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+          <span className="break-all">{matchReason || "A contact with matching details was found."}</span>
+        </div>
+
         {/* Existing Contact Summary Card */}
-        <div className="my-2 p-4 rounded-xl border border-amber-200 dark:border-amber-900/40 bg-amber-50/50 dark:bg-amber-950/20 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
-              Existing Saved Contact
+        <div className="my-2 p-3.5 sm:p-4 rounded-xl border border-border bg-slate-50 dark:bg-slate-900/50 space-y-2">
+          <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+            <span className="font-semibold text-slate-700 dark:text-slate-300">
+              Existing Saved Record
             </span>
-            <span className="text-[11px] text-muted-foreground">
-              Saved {new Date(existingContact.createdAt).toLocaleDateString()} at {new Date(existingContact.createdAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+            <span>
+              {new Date(existingContact.createdAt).toLocaleDateString()}
             </span>
           </div>
 
           <div className="flex items-start gap-3 pt-1">
-            <div className="w-9 h-9 rounded-full bg-amber-200/60 dark:bg-amber-800/40 flex items-center justify-center shrink-0 text-amber-800 dark:text-amber-200 font-bold text-sm">
+            <div className="w-9 h-9 rounded-xl bg-brand/10 text-brand flex items-center justify-center shrink-0 font-bold text-sm">
               {v.fullName ? v.fullName.charAt(0).toUpperCase() : <User className="w-4 h-4" />}
             </div>
-            <div className="min-w-0 flex-1">
-              <h4 className="text-sm font-semibold text-foreground truncate">
+            <div className="min-w-0 flex-1 space-y-0.5">
+              <h4 className="text-sm font-bold text-foreground truncate">
                 {v.fullName || "Unnamed Contact"}
               </h4>
               {v.jobTitle && (
                 <p className="text-xs text-muted-foreground truncate">{v.jobTitle}</p>
               )}
               {v.companyName && (
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
-                  <Building2 className="w-3 h-3 shrink-0" />
-                  <span className="truncate">{v.companyName}</span>
+                <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+                  <Building2 className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
+                  <span className="truncate font-medium">{v.companyName}</span>
                 </div>
               )}
               {v.email && (
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
-                  <Mail className="w-3 h-3 shrink-0 text-amber-600" />
+                <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+                  <Mail className="w-3.5 h-3.5 shrink-0 text-brand" />
                   <span className="truncate">{v.email}</span>
                 </div>
               )}
               {v.phone && (
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
-                  <Phone className="w-3 h-3 shrink-0" />
+                <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+                  <Phone className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
                   <span>{v.phone}</span>
                 </div>
               )}
@@ -93,29 +99,29 @@ export default function DuplicateWarningModal({
           </div>
         </div>
 
-        <DialogFooter className="mt-4 flex flex-col gap-2 sm:flex-row">
+        <DialogFooter className="mt-4 flex flex-col gap-2.5 sm:flex-col">
           <Button
-            variant="outline"
-            size="sm"
-            onClick={onClose}
-            className="h-11 w-full rounded-xl border-[#007BC2]/40 bg-[#007BC2]/5 px-4 text-sm font-semibold text-[#007BC2] hover:border-[#007BC2] hover:bg-[#007BC2]/15 sm:h-11 sm:min-w-[105px] sm:w-auto"
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
+            size="default"
             onClick={onViewExisting}
-            className="h-11 w-full rounded-xl border-[#007BC2]/30 px-4 text-sm font-semibold text-[#007BC2] hover:bg-[#007BC2]/10 sm:h-11 sm:min-w-[130px] sm:w-auto"
+            className="h-11 w-full rounded-xl bg-brand px-4 text-xs sm:text-sm font-bold text-white shadow-xs hover:bg-brand-hover transition-colors"
           >
-            Review Existing
+            Review existing contact
           </Button>
           <Button
-            size="sm"
+            variant="outline"
+            size="default"
             onClick={onSaveAnyway}
-            className="h-11 w-full rounded-xl bg-[#007BC2] px-4 text-sm font-bold text-white shadow-xs hover:bg-[#0064a0] sm:h-11 sm:min-w-[120px] sm:w-auto"
+            className="h-11 w-full rounded-xl border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 px-4 text-xs sm:text-sm font-semibold text-foreground transition-colors"
           >
-            Save Anyway
+            Save as a new contact
+          </Button>
+          <Button
+            variant="ghost"
+            size="default"
+            onClick={onClose}
+            className="h-10 w-full rounded-xl text-xs sm:text-sm font-medium text-muted-foreground hover:text-foreground"
+          >
+            Go back and edit
           </Button>
         </DialogFooter>
       </DialogContent>

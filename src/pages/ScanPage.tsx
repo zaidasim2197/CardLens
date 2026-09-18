@@ -14,6 +14,9 @@ import {
   SwitchCamera,
   Users,
   ArrowRight,
+  AlertTriangle,
+  Play,
+  Edit3,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -22,14 +25,57 @@ import { toast } from "sonner";
 import OCRReviewModal from "@/components/scanner/OCRReviewModal";
 import { storageService } from "@/lib/db";
 import { cropBusinessCardImage } from "@/lib/imageCrop";
+import { cn } from "@/lib/utils";
+import type { OCRData } from "@/types";
+
+// ─── Synthetic Demo Contact (Completely Zero OCR) ─────────────────────────────
+const PREPARED_DEMO_CONTACT: OCRData = {
+  fullName: "Daniel Rahman",
+  jobTitle: "Business Development Manager",
+  companyName: "AeroSyn Tech Solutions",
+  phone: "+1 (555) 284-7712",
+  alternatePhone: "+1 (555) 284-7700",
+  email: "daniel.rahman@aerosyntech.com",
+  // Deliberate single-character OCR mistake to demonstrate the review step.
+  website: "www.aerosynteeh.com",
+  address: "425 Madison Avenue, Suite 1200, New York, NY 10017, USA",
+  city: "New York",
+  country: "USA",
+  metAt: "Enterprise Tech Showcase 2026",
+  contactType: "Prospect",
+  interest: "Workflow Automation & Contact Review",
+  relationshipOwner: "V71 Team",
+  notes: "Met at showcase booth. Requested a prototype walkthrough for the Q3 pipeline review.",
+  followUpDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+  isDemo: true,
+};
+
+const DEMO_RAW_TEXT = `AeroSyn Tech Solutions
+IDEAS FOR A BRIGHTER TOMORROW
+PEOPLE TECHNOLOGY PROGRESS
+
+Daniel Rahman
+Business Development Manager
+
+Mobile: +1 (555) 284-7712
+Office: +1 (555) 284-7700
+Email: daniel.rahman@aerosyntech.com
+Web: www.aerosyntech.com
+Address: 425 Madison Avenue, Suite 1200, New York, NY 10017, USA
+
+A SMARTER TOMORROW TOGETHER`;
 
 // ─── Camera Modal (rendered into document.body via portal) ───────────────────
 function CameraModal({
   onCapture,
   onClose,
+  onTryDemo,
+  onUploadImage,
 }: {
   onCapture: (file: File) => void;
   onClose: () => void;
+  onTryDemo: () => void;
+  onUploadImage: () => void;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const cardFrameRef = useRef<HTMLDivElement>(null);
@@ -40,7 +86,6 @@ function CameraModal({
   const [errorMsg, setErrorMsg] = useState("");
   const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
 
-  // ── start / restart stream ──────────────────────────────────────────────────
   const startCamera = useCallback(
     async (mode: "environment" | "user") => {
       if (streamRef.current) {
@@ -65,14 +110,12 @@ function CameraModal({
         setStatus("error");
         if (e.name === "NotAllowedError" || e.name === "PermissionDeniedError") {
           setErrorMsg(
-            "Camera access was denied. Please allow camera permission in your browser settings and try again."
+            "Camera access was denied. Please allow camera permission in browser settings, or use the demo card below."
           );
         } else if (e.name === "NotFoundError" || e.name === "DevicesNotFoundError") {
           setErrorMsg("No camera found on this device.");
         } else if (e.name === "NotReadableError" || e.name === "TrackStartError") {
-          setErrorMsg(
-            "Camera is currently in use by another application. Please close it and try again."
-          );
+          setErrorMsg("Camera is in use by another app. Close it and try again.");
         } else {
           setErrorMsg(`Camera error: ${e.message || e.name}`);
         }
@@ -100,7 +143,7 @@ function CameraModal({
       try {
         await video.play();
       } catch {
-        // play() can throw on unmount race — silently ignore
+        // silently ignore
       }
 
       setStatus("live");
@@ -113,8 +156,7 @@ function CameraModal({
     return () => {
       if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [facingMode, startCamera]);
 
   const doCapture = useCallback(() => {
     if (capturedRef.current) return;
@@ -125,9 +167,6 @@ function CameraModal({
 
     capturedRef.current = true;
 
-    // The video uses object-fit: cover, so the visible video can extend beyond
-    // the viewport. Convert the exact on-screen guide rectangle back into the
-    // camera's native pixel coordinates and capture only that area.
     const videoRect = video.getBoundingClientRect();
     const frameRect = cardFrame.getBoundingClientRect();
     const coverScale = Math.max(
@@ -139,36 +178,18 @@ function CameraModal({
     const renderedOffsetX = (videoRect.width - renderedWidth) / 2;
     const renderedOffsetY = (videoRect.height - renderedHeight) / 2;
 
-    const requestedX =
-      (frameRect.left - videoRect.left - renderedOffsetX) / coverScale;
-    const requestedY =
-      (frameRect.top - videoRect.top - renderedOffsetY) / coverScale;
+    const requestedX = (frameRect.left - videoRect.left - renderedOffsetX) / coverScale;
+    const requestedY = (frameRect.top - videoRect.top - renderedOffsetY) / coverScale;
     const sourceX = Math.max(0, requestedX);
     const sourceY = Math.max(0, requestedY);
-    const sourceWidth = Math.min(
-      frameRect.width / coverScale,
-      video.videoWidth - sourceX
-    );
-    const sourceHeight = Math.min(
-      frameRect.height / coverScale,
-      video.videoHeight - sourceY
-    );
+    const sourceWidth = Math.min(frameRect.width / coverScale, video.videoWidth - sourceX);
+    const sourceHeight = Math.min(frameRect.height / coverScale, video.videoHeight - sourceY);
 
     const cap = document.createElement("canvas");
     cap.width = Math.max(1, Math.round(sourceWidth));
     cap.height = Math.max(1, Math.round(sourceHeight));
     const ctx = cap.getContext("2d")!;
-    ctx.drawImage(
-      video,
-      sourceX,
-      sourceY,
-      sourceWidth,
-      sourceHeight,
-      0,
-      0,
-      cap.width,
-      cap.height
-    );
+    ctx.drawImage(video, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, cap.width, cap.height);
 
     cap.toBlob(
       (blob) => {
@@ -176,8 +197,6 @@ function CameraModal({
           capturedRef.current = false;
           return;
         }
-        // The "-cropped" suffix prevents the upload preparation step from
-        // trimming this exact camera-frame crop a second time.
         const file = new File([blob], `card-${Date.now()}-cropped.jpg`, {
           type: "image/jpeg",
         });
@@ -201,12 +220,12 @@ function CameraModal({
         position: "fixed",
         inset: 0,
         zIndex: 9999,
-        background: "#090D16",
+        background: "#181817",
         display: "flex",
         flexDirection: "column",
       }}
     >
-      {/* ── Full-screen video ── */}
+      {/* Video stream */}
       <video
         ref={videoRef}
         playsInline
@@ -222,54 +241,73 @@ function CameraModal({
         }}
       />
 
-      {/* ── Business Card Alignment Frame Overlay ── */}
+      {/* Frame Reticle Overlay */}
       {status === "live" && (
         <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-6 z-10">
           <div
             ref={cardFrameRef}
             className="w-full max-w-sm aspect-[1.75/1] rounded-2xl border-2 border-white/60 relative shadow-[0_0_0_9999px_rgba(0,0,0,0.65)]"
           >
-            {/* Corner focus brackets */}
-            <div className="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-[#007BC2] rounded-tl-lg" />
-            <div className="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-[#007BC2] rounded-tr-lg" />
-            <div className="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 border-[#007BC2] rounded-bl-lg" />
-            <div className="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 border-[#007BC2] rounded-br-lg" />
+            <div className="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-white/90 rounded-tl-lg" />
+            <div className="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-white/90 rounded-tr-lg" />
+            <div className="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 border-white/90 rounded-bl-lg" />
+            <div className="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 border-white/90 rounded-br-lg" />
 
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-white/90 text-xs font-semibold uppercase tracking-wider bg-black/50 px-3.5 py-1.5 rounded-full backdrop-blur-md border border-white/20">
-                Position Business Card Here
+              <span className="text-white/90 text-xs font-semibold tracking-wide bg-black/50 px-3.5 py-1.5 rounded-full backdrop-blur-md border border-white/20">
+                Position Business Card
               </span>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── Loading state ── */}
+      {/* Loading state */}
       {status === "loading" && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white/70">
-          <div className="w-10 h-10 rounded-full border-2 border-white/20 border-t-[#007BC2] animate-spin" />
+          <div className="w-10 h-10 rounded-full border-2 border-white/20 border-t-white animate-spin" />
           <p className="text-sm font-medium">Initializing camera…</p>
         </div>
       )}
 
-      {/* ── Error state ── */}
+      {/* Error state */}
       {status === "error" && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 text-center">
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 text-center max-w-md mx-auto">
           <div className="bg-red-500/20 p-4 rounded-full">
             <CameraOff className="w-10 h-10 text-red-400" />
           </div>
           <p className="text-white font-bold text-lg">Camera Unavailable</p>
-          <p className="text-white/60 text-sm leading-relaxed max-w-xs">{errorMsg}</p>
-          <button
-            onClick={() => startCamera(facingMode)}
-            className="mt-2 px-6 py-2.5 rounded-full border border-white/20 text-white text-xs font-semibold hover:bg-white/10 transition-colors"
-          >
-            Try Again
-          </button>
+          <p className="text-white/60 text-xs sm:text-sm leading-relaxed">{errorMsg}</p>
+          <div className="flex flex-col gap-2 w-full pt-2">
+            <button
+              onClick={() => startCamera(facingMode)}
+              className="w-full h-11 rounded-xl bg-brand text-white text-xs sm:text-sm font-bold hover:bg-brand-hover transition-colors"
+            >
+              Try Again
+            </button>
+            <button
+              onClick={() => {
+                onClose();
+                onTryDemo();
+              }}
+              className="w-full h-11 rounded-xl border border-white/20 bg-white/10 text-white text-xs sm:text-sm font-semibold hover:bg-white/15 transition-colors"
+            >
+              Try Demo Card (No Camera Needed)
+            </button>
+            <button
+              onClick={() => {
+                onClose();
+                onUploadImage();
+              }}
+              className="w-full h-10 rounded-xl text-white/70 hover:text-white text-xs font-medium transition-colors"
+            >
+              Upload Card Image Instead
+            </button>
+          </div>
         </div>
       )}
 
-      {/* ── Top Bar ── */}
+      {/* Top Bar */}
       <div className="absolute top-0 inset-x-0 z-20 flex items-center justify-between p-4 bg-gradient-to-b from-black/80 to-transparent">
         <button
           onClick={onClose}
@@ -279,11 +317,11 @@ function CameraModal({
           Cancel
         </button>
         <span className="text-white/80 text-xs font-medium tracking-wide hidden sm:block">
-          Aventure Aviation Camera Capture
+          CardSnap Camera Capture
         </span>
       </div>
 
-      {/* ── Bottom HUD ── */}
+      {/* Bottom HUD */}
       <div className="absolute bottom-0 inset-x-0 z-20 p-6 pb-[max(env(safe-area-inset-bottom,24px),24px)] bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col items-center">
         {status === "live" && (
           <div className="flex items-center justify-center w-full max-w-xs relative">
@@ -298,7 +336,7 @@ function CameraModal({
             <button
               onClick={doCapture}
               aria-label="Capture"
-              className="w-18 h-18 rounded-full flex items-center justify-center bg-white/15 backdrop-blur-md border-2 border-[#007BC2] active:scale-95 transition-all shadow-2xl"
+              className="w-18 h-18 rounded-full flex items-center justify-center bg-white/15 backdrop-blur-md border-2 border-white/80 active:scale-95 transition-all shadow-2xl"
             >
               <div className="w-14 h-14 rounded-full bg-white shadow-xl" />
             </button>
@@ -310,24 +348,32 @@ function CameraModal({
   );
 }
 
-// ─── Main ScanPage ────────────────────────────────────────────────────────────
+// ─── Main ScanPage Component ──────────────────────────────────────────────────
 export default function ScanPage() {
   const navigate = useNavigate();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState(0);
-  const [ocrData, setOcrData] = useState<any>(null);
+  const [ocrData, setOcrData] = useState<OCRData | null>(null);
   const [rawText, setRawText] = useState("");
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-  const [scanError, setScanError] = useState<string | null>(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
+
+  // States: "idle" | "card_selected" | "failure"
+  const [viewState, setViewState] = useState<"idle" | "card_selected" | "failure">("idle");
+  const [failureError, setFailureError] = useState<string>("");
+  const [isDemoMode, setIsDemoMode] = useState(false);
+  const [isDemoRunning, setIsDemoRunning] = useState(false);
+  const [demoStage, setDemoStage] = useState<"detecting" | "extracting" | "parsing" | "done">("detecting");
+  const [isManualEntry, setIsManualEntry] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Live query for verified contacts count
-  const verifiedContacts = useLiveQuery(() => storageService.getVerifiedContacts());
+  // Live query for reviewed contacts
+  const reviewedContacts = useLiveQuery(() => storageService.getVerifiedContacts());
 
+  // ─── Real Upload Processing ─────────────────────────────────────────────────
   const processFile = async (file: File) => {
     const validTypes = ["image/jpeg", "image/png", "image/webp"];
     if (!validTypes.includes(file.type)) {
@@ -340,12 +386,14 @@ export default function ScanPage() {
     }
     try {
       const croppedFile = await cropBusinessCardImage(file, file.name);
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-      setScanError(null);
+      if (previewUrl && !isDemoMode) URL.revokeObjectURL(previewUrl);
       setSelectedFile(croppedFile);
       setPreviewUrl(URL.createObjectURL(croppedFile));
+      setIsDemoMode(false);
+      setIsManualEntry(false);
+      setViewState("card_selected");
     } catch {
-      toast.error("We could not prepare this image. Please try another photo.");
+      triggerFailure("We could not prepare this image. Please try another photo.");
     }
   };
 
@@ -365,9 +413,9 @@ export default function ScanPage() {
     if (file) void processFile(file);
   };
 
-  const handleScan = async () => {
+  // ─── Real Scan / OCR API Call ───────────────────────────────────────────────
+  const handleRealScan = async () => {
     if (!selectedFile) return;
-    setScanError(null);
     setIsReviewModalOpen(false);
     setIsScanning(true);
     setScanProgress(15);
@@ -390,26 +438,107 @@ export default function ScanPage() {
       }
 
       const data = await response.json();
-      if (!hasReadableContact(data.rawText, data.parsed)) throw new Error(NO_CONTACT_MESSAGE);
+      if (!hasReadableContact(data.rawText, data.parsed)) {
+        throw new Error(NO_CONTACT_MESSAGE);
+      }
       setOcrData(data.parsed);
       setRawText(data.rawText);
+      setIsDemoMode(false);
+      setIsManualEntry(false);
       setIsReviewModalOpen(true);
+      setViewState("idle");
     } catch (error: unknown) {
       clearInterval(interval);
-      const message = error instanceof Error ? error.message : "Unable to read this card. Check your connection and try again.";
-      setScanError(message);
-      toast.error(message);
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Unable to read this card. Check your connection and try again.";
+      triggerFailure(message);
     } finally {
       setIsScanning(false);
       setTimeout(() => setScanProgress(0), 500);
     }
   };
 
-  const clearSelection = () => {
-    setScanError(null);
+  // ─── Deterministic Demo Flow (ZERO OCR REQUESTS, REALISTIC IN-PLACE ANIMATION) ────────
+  const handleTryDemo = () => {
+    if (isDemoRunning) return;
+    setIsDemoMode(true);
+    setIsManualEntry(false);
+    setIsDemoRunning(true);
+    setDemoStage("detecting");
+
+    // Preload demo card image for modal review
+    setPreviewUrl("/demo-card.png");
     setSelectedFile(null);
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
+
+    // Step 1: Detect card edges in reticle (0ms -> 950ms)
+    // Step 2: Optical text line extraction (950ms -> 2000ms)
+    setTimeout(() => {
+      setDemoStage("extracting");
+    }, 950);
+
+    // Step 3: Entity structuring (Name, Phone, Email, Address) (2000ms -> 2900ms)
+    setTimeout(() => {
+      setDemoStage("parsing");
+    }, 2000);
+
+    // Step 4: Verification pass complete (2900ms -> 3450ms)
+    setTimeout(() => {
+      setDemoStage("done");
+      setOcrData(PREPARED_DEMO_CONTACT);
+      setRawText(DEMO_RAW_TEXT);
+    }, 2900);
+
+    // Step 5: Smoothly present the contact review modal
+    setTimeout(() => {
+      setIsDemoRunning(false);
+      setIsReviewModalOpen(true);
+    }, 3450);
+  };
+
+  // ─── Manual Entry Flow ──────────────────────────────────────────────────────
+  const handleManualEntry = () => {
+    setIsDemoMode(false);
+    setIsManualEntry(true);
+    setOcrData({
+      fullName: "",
+      companyName: "",
+      jobTitle: "",
+      email: "",
+      phone: "",
+      alternatePhone: "",
+      website: "",
+      address: "",
+      city: "",
+      country: "",
+      notes: "",
+      metAt: "",
+      contactType: "",
+      interest: "",
+      relationshipOwner: "",
+      followUpDate: "",
+    });
+    setRawText("");
+    setSelectedFile(null);
     setPreviewUrl(null);
+    setViewState("idle");
+    setIsReviewModalOpen(true);
+  };
+
+  // ─── Failure / Recovery Trigger ─────────────────────────────────────────────
+  const triggerFailure = (msg?: string) => {
+    setFailureError(
+      msg || "The image may be unclear or could not be processed. Try again or choose another option."
+    );
+    setViewState("failure");
+  };
+
+  const clearSelection = () => {
+    setSelectedFile(null);
+    if (previewUrl && !isDemoMode) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
+    setViewState("idle");
   };
 
   return (
@@ -418,10 +547,12 @@ export default function ScanPage() {
         <CameraModal
           onCapture={handleCameraCapture}
           onClose={() => setIsCameraOpen(false)}
+          onTryDemo={handleTryDemo}
+          onUploadImage={() => fileInputRef.current?.click()}
         />
       )}
 
-      {/* Hidden file input always available */}
+      {/* Hidden file input */}
       <input
         ref={fileInputRef}
         type="file"
@@ -430,292 +561,405 @@ export default function ScanPage() {
         onChange={handleFileChange}
       />
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 pb-24 space-y-10">
-        {!selectedFile ? (
-          /* ── 1. PREMIUM AVENTURE AVIATION WELCOME LANDING SCREEN ── */
-          <div className="space-y-8 sm:space-y-10">
-            {/* Hero Header & Official Logo */}
-            <div className="text-center space-y-5">
-              {/* Eyebrow Badge */}
-              {/* <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-[#007BC2]/10 text-[#007BC2] border border-[#007BC2]/25 shadow-xs">
-                <span className="w-2 h-2 rounded-full bg-[#007BC2] animate-pulse" />
-                <span className="tracking-wide uppercase text-[11px] font-bold">
-                  Aventure Aviation • Enterprise Contact Capture
+      <div className="scan-workspace max-w-xl mx-auto py-4 sm:py-8 space-y-6 sm:space-y-8">
+        {/* ── STATE A: IDLE / LANDING SCREEN (Mobile-First, Spacious, Minimal) ── */}
+        {viewState === "idle" && (
+          <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-200">
+            {/* Headline & Short Supporting Copy */}
+            <div className="scan-intro text-center space-y-3 pt-2 sm:pt-4">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.2]">
+                Turn business cards into{" "}
+                <span className="headline-accent inline-block">
+                  reviewed contacts.
                 </span>
-              </div> */}
-
-              {/* Official Aventure Aviation Logo Asset */}
-              {/* <div className="flex justify-center items-center py-2">
-                <img
-                  src="/Picture1.png"
-                  alt="Aventure Aviation"
-                  className="h-14 sm:h-20 md:h-24 w-auto object-contain max-w-[85vw] sm:max-w-md filter drop-shadow-xs transition-transform duration-300 hover:scale-102"
-                />
-              </div> */}
-
-              {/* Hero Headings */}
-              <div className="space-y-3 max-w-3xl mx-auto">
-                <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.18]">
-                  Turn business cards into<br className="hidden sm:block" />{" "}
-                  <span className="text-[#007BC2] bg-gradient-to-r from-[#007BC2] to-[#2E3192] bg-clip-text text-transparent inline-block">
-                    verified contacts.
-                  </span>
-                </h1>
-                <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base md:text-lg max-w-3xl mx-auto leading-relaxed font-normal md:whitespace-nowrap">
-                  Scan or upload a business card to extract, review, and save verified contact details.
-                </p>
-              </div>
-
-            </div>
-
-            {/* Interactive Scanning Visual & Primary / Secondary CTAs Card */}
-            <div
-              onDrop={handleDrop}
-              onDragOver={(e) => e.preventDefault()}
-              className="relative rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 shadow-xl shadow-slate-200/50 dark:shadow-none p-6 sm:p-10 text-center overflow-hidden transition-all duration-300 hover:border-[#007BC2]/40 group"
-            >
-              {/* Subtle Aviation/Scanning Backdrop Gradients */}
-              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-[#007BC2]/5 via-transparent to-transparent opacity-60" />
-              <div className="absolute -right-16 -top-16 w-48 h-48 rounded-full bg-[#007BC2]/10 blur-3xl pointer-events-none" />
-              <div className="absolute -left-16 -bottom-16 w-48 h-48 rounded-full bg-[#2E3192]/10 blur-3xl pointer-events-none" />
-
-              {/* Business Card Scanning Frame Representation */}
-              <div className="relative max-w-sm mx-auto mb-8 p-5 sm:p-6 rounded-2xl border-2 border-dashed border-[#007BC2]/40 bg-slate-50/80 dark:bg-slate-950/60 shadow-inner group-hover:border-[#007BC2] transition-colors duration-300">
-                {/* Corner Bracket Reticles */}
-                <div className="absolute -top-1 -left-1 w-5 h-5 border-t-3 border-l-3 border-[#007BC2] rounded-tl-md" />
-                <div className="absolute -top-1 -right-1 w-5 h-5 border-t-3 border-r-3 border-[#007BC2] rounded-tr-md" />
-                <div className="absolute -bottom-1 -left-1 w-5 h-5 border-b-3 border-l-3 border-[#007BC2] rounded-bl-md" />
-                <div className="absolute -bottom-1 -right-1 w-5 h-5 border-b-3 border-r-3 border-[#007BC2] rounded-br-md" />
-
-                {/* Laser scan line animation */}
-                <div className="animate-scanline opacity-80" />
-
-                {/* Card Mockup Graphic */}
-                <div className="flex flex-col gap-2.5 p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm text-left">
-                  <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-[#007BC2]/15 text-[#007BC2] flex items-center justify-center font-bold text-xs">
-                        AA
-                      </div>
-                      <div>
-                        <div className="h-2.5 w-24 bg-slate-800 dark:bg-slate-200 rounded-full" />
-                        <div className="h-2 w-16 bg-slate-300 dark:bg-slate-700 rounded-full mt-1" />
-                      </div>
-                    </div>
-                    <div className="text-[10px] font-bold text-[#007BC2] uppercase tracking-wider bg-[#007BC2]/10 px-2 py-0.5 rounded-full">
-                      OCR Ready
-                    </div>
-                  </div>
-                  <div className="space-y-1.5 pt-0.5">
-                    <div className="h-2 w-36 bg-slate-300 dark:bg-slate-700 rounded-full" />
-                    <div className="h-2 w-28 bg-slate-200 dark:bg-slate-800 rounded-full" />
-                  </div>
-                </div>
-              </div>
-
-              {/* CTAs Action Buttons Container */}
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 w-full max-w-sm sm:max-w-md mx-auto relative z-10 pt-2">
-                {/* Primary Action: Scan Business Card */}
-                <Button
-                  size="lg"
-                  className="w-full sm:flex-1 h-14 px-6 text-base sm:text-lg font-bold bg-[#007BC2] hover:bg-[#0064a0] active:scale-[0.98] text-white !rounded-2xl shadow-lg shadow-[#007BC2]/25 hover:shadow-xl hover:shadow-[#007BC2]/35 transition-all gap-3 border-0 flex items-center justify-center"
-                  onClick={() => setIsCameraOpen(true)}
-                >
-                  <Camera className="w-5 h-5 text-white shrink-0" />
-                  <span>Scan Business Card</span>
-                </Button>
-
-                {/* Secondary Action: Upload Card */}
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="w-full sm:flex-1 h-14 px-6 text-base sm:text-lg font-bold border-2 border-[#007BC2]/35 hover:border-[#007BC2] hover:bg-[#007BC2]/5 active:scale-[0.98] text-[#007BC2] dark:text-slate-100 !rounded-2xl transition-all gap-3 flex items-center justify-center bg-white dark:bg-slate-900 shadow-xs"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <UploadCloud className="w-5 h-5 text-[#007BC2] shrink-0" />
-                  <span>Upload Card</span>
-                </Button>
-              </div>
-
-
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-4 font-medium">
-                Supports JPG, PNG or WEBP up to 10 MB. Drag & drop image anywhere above.
+              </h1>
+              <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm md:text-base max-w-md mx-auto leading-relaxed">
+                Capture a card. Refine the details. Keep the connection.
               </p>
             </div>
 
-            {/* Real Verified Contacts Summary */}
-            <div className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white/80 dark:bg-slate-900/60 p-4 sm:p-5 shadow-xs">
-              {verifiedContacts && verifiedContacts.length > 0 ? (
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
-                  <div className="flex items-center gap-3 text-left w-full sm:w-auto min-w-0">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                      <Users className="w-5 h-5" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between sm:justify-start gap-2 w-full">
-                        <h4 className="font-bold text-sm sm:text-base text-slate-900 dark:text-slate-100 truncate">
-                          Verified Contacts
-                        </h4>
-                        <span className="shrink-0 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 whitespace-nowrap">
-                          {verifiedContacts.length} {verifiedContacts.length === 1 ? 'Saved' : 'Saved'}
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 hidden sm:block">
-                        Access and export your extracted business contact queue anytime.
-                      </p>
-                    </div>
-                  </div>
+            {/* Clean Business-Card Preview / Capture Area */}
+            <div
+              onDrop={handleDrop}
+              onDragOver={(e) => e.preventDefault()}
+              className="capture-surface relative rounded-3xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-5 sm:p-7 shadow-xs hover:border-brand/40 transition-colors text-center overflow-hidden"
+            >
+              {/* Card visual container with corner brackets and real demo card */}
+              <div
+                onClick={() => {
+                  if (!isDemoRunning) handleTryDemo();
+                }}
+                className={cn(
+                  "card-stage relative max-w-sm sm:max-w-md mx-auto mb-6 p-2.5 sm:p-3 rounded-2xl sm:rounded-3xl border transition-all duration-300 group select-none",
+                  isDemoRunning
+                    ? "border-brand bg-brand/5 shadow-md shadow-brand/10"
+                    : "border-slate-200 dark:border-slate-800 hover:border-brand/60 bg-slate-50/70 dark:bg-slate-950/40 cursor-pointer"
+                )}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    if (!isDemoRunning) handleTryDemo();
+                  }
+                }}
+                aria-label="Try demo card"
+              >
+                {/* Corner focus brackets */}
+                <div
+                  className={cn(
+                    "absolute -top-1 -left-1 w-4.5 h-4.5 border-t-3 border-l-3 rounded-tl-sm transition-colors duration-300",
+                    isDemoRunning
+                      ? "border-brand"
+                      : "border-slate-400 dark:border-slate-600 group-hover:border-brand"
+                  )}
+                />
+                <div
+                  className={cn(
+                    "absolute -top-1 -right-1 w-4.5 h-4.5 border-t-3 border-r-3 rounded-tr-sm transition-colors duration-300",
+                    isDemoRunning
+                      ? "border-brand"
+                      : "border-slate-400 dark:border-slate-600 group-hover:border-brand"
+                  )}
+                />
+                <div
+                  className={cn(
+                    "absolute -bottom-1 -left-1 w-4.5 h-4.5 border-b-3 border-l-3 rounded-bl-sm transition-colors duration-300",
+                    isDemoRunning
+                      ? "border-brand"
+                      : "border-slate-400 dark:border-slate-600 group-hover:border-brand"
+                  )}
+                />
+                <div
+                  className={cn(
+                    "absolute -bottom-1 -right-1 w-4.5 h-4.5 border-b-3 border-r-3 rounded-br-sm transition-colors duration-300",
+                    isDemoRunning
+                      ? "border-brand"
+                      : "border-slate-400 dark:border-slate-600 group-hover:border-brand"
+                  )}
+                />
 
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate('/verified')}
-                    className="h-9 px-3.5 text-xs font-semibold rounded-xl border-[#007BC2]/40 text-[#007BC2] bg-[#007BC2]/5 hover:bg-[#007BC2]/15 hover:border-[#007BC2] transition-all gap-1.5 shrink-0 w-full sm:w-auto"
-                  >
-                    View Contacts <ArrowRight className="w-3.5 h-3.5 text-[#007BC2]" />
-                  </Button>
+                {/* The Demo Card Container - perfectly framed without background, realistic paper shadow */}
+                <div className="relative w-full aspect-[936/548] rounded-xl sm:rounded-2xl overflow-hidden bg-white shadow-sm border border-slate-200/90 dark:border-slate-700/80 flex items-center justify-center">
+                  <img
+                    src="/demo-card.png"
+                    alt="Demo Card - Daniel Rahman, AeroSyn Tech Solutions"
+                    className="w-full h-full object-contain pointer-events-none"
+                  />
+
+                  {/* In-place Laser Scanning Animation (NO SEPARATE SCREEN) */}
+                  {isDemoRunning && (
+                    <>
+                      {/* Laser beam */}
+                      <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-brand to-transparent shadow-[0_0_16px_4px_rgba(36,35,33,0.18)] animate-scanline pointer-events-none z-10" />
+                      <div className="absolute inset-0 bg-brand/5 pointer-events-none" />
+
+                      {/* In-place status pill */}
+                      <div className="absolute inset-0 flex items-center justify-center bg-slate-950/20 backdrop-blur-[1.5px] transition-all z-20">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/95 dark:bg-slate-900/95 text-slate-900 dark:text-white shadow-xl border border-slate-200/80 dark:border-slate-700 text-xs font-bold tracking-tight animate-in zoom-in-95 duration-200">
+                          {demoStage === "detecting" ? (
+                            <>
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin text-brand" />
+                              <span>Detecting business card…</span>
+                            </>
+                          ) : demoStage === "extracting" ? (
+                            <>
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin text-brand" />
+                              <span>Reading contact details…</span>
+                            </>
+                          ) : demoStage === "parsing" ? (
+                            <>
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin text-brand" />
+                              <span>Structuring contact fields…</span>
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                              <span>Contact ready!</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
-              ) : (
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 flex items-center justify-center shrink-0">
-                      <Users className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-xs sm:text-sm text-slate-800 dark:text-slate-200">
-                        No contacts saved yet
-                      </h4>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Your verified contacts will appear here after your first scan.
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate('/verified')}
-                    className="h-9 px-3.5 text-xs font-semibold rounded-xl border-[#007BC2]/40 text-[#007BC2] bg-[#007BC2]/5 hover:bg-[#007BC2]/15 hover:border-[#007BC2] transition-all gap-1.5 shrink-0"
-                  >
-                    View Queue <ArrowRight className="w-3.5 h-3.5 text-[#007BC2]" />
-                  </Button>
-                </div>
-              )}
+              </div>
+
+              {/* Professional Demo Indicator placed cleanly below the card */}
+              <div className="flex items-center justify-center -mt-2 mb-6">
+                <span
+                  className="inline-flex items-center px-3 py-1 rounded-full bg-slate-100/90 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 text-[11px] font-medium border border-slate-200/80 dark:border-slate-700/60"
+                >
+                  Demo card
+                </span>
+              </div>
+
+              {/* Action Buttons (Hierarchy: Primary Scan -> Secondary Upload -> Tertiary Demo) */}
+              <div className="flex flex-col gap-2.5 w-full max-w-sm mx-auto">
+                {/* 1. Primary CTA: Scan a business card */}
+                <Button
+                  size="lg"
+                  disabled={isDemoRunning}
+                  className="w-full h-12 sm:h-13 text-sm sm:text-base font-bold bg-brand hover:bg-brand-hover active:scale-[0.99] text-white rounded-2xl shadow-md shadow-brand/20 transition-all gap-2.5 flex items-center justify-center min-h-[48px]"
+                  onClick={() => setIsCameraOpen(true)}
+                >
+                  <Camera className="w-4 h-4 text-white shrink-0" />
+                  <span>Scan a business card</span>
+                </Button>
+
+                {/* 2. Secondary CTA: Upload a card image */}
+                <Button
+                  variant="outline"
+                  size="lg"
+                  disabled={isDemoRunning}
+                  className="w-full h-12 sm:h-13 text-sm sm:text-base font-semibold border border-slate-200 dark:border-slate-700 hover:border-brand/60 hover:bg-brand/5 active:scale-[0.99] text-slate-800 dark:text-slate-200 rounded-2xl transition-all gap-2.5 flex items-center justify-center bg-white dark:bg-slate-900 min-h-[48px]"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <UploadCloud className="w-4 h-4 text-brand shrink-0" />
+                  <span>Upload a card image</span>
+                </Button>
+
+                {/* 3. Tertiary CTA: Try demo card */}
+                <Button
+                  variant="ghost"
+                  size="default"
+                  disabled={isDemoRunning}
+                  className="w-full h-11 text-xs sm:text-sm font-semibold text-brand hover:bg-brand/10 rounded-xl transition-all gap-2 flex items-center justify-center mt-1"
+                  onClick={handleTryDemo}
+                >
+                  {isDemoRunning ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin text-brand" />
+                      <span>Reading demo card…</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-3.5 h-3.5 text-brand fill-brand/20" />
+                      <span>Try demo card</span>
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              {/* Minimal Supporting Copy */}
+              <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-3 font-medium">
+                JPG, PNG or WEBP · Up to 10 MB. You can also drag & drop.
+              </p>
             </div>
 
+            {/* Reviewed Contacts Summary Panel */}
+            <div className="collection-summary rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/80 dark:bg-slate-900/60 p-4 sm:p-5 shadow-2xs">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0">
+                    <Users className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100 truncate">
+                        Reviewed contacts
+                      </h4>
+                      {reviewedContacts && reviewedContacts.length > 0 && (
+                        <span className="px-2 py-0.2 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                          {reviewedContacts.length}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
+                      Stored in this demo browser only.
+                    </p>
+                  </div>
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate("/verified")}
+                  className="h-9 px-3 text-xs font-semibold rounded-xl border-slate-200 dark:border-slate-700 text-brand hover:bg-brand/10 transition-colors shrink-0"
+                >
+                  View <ArrowRight className="w-3 h-3 ml-1" />
+                </Button>
+              </div>
+            </div>
           </div>
-        ) : (
-          /* ── 2. CARD LOADED & OCR PROCESSING WORKFLOW ── */
-          <div className="rounded-3xl border border-border bg-card shadow-xl overflow-hidden">
-            <div className="flex flex-col md:flex-row md:h-80">
-              {/* Card Image Preview with Scanning Animation */}
-              <div className="md:w-5/12 bg-slate-100/80 dark:bg-slate-900/50 border-b md:border-b-0 md:border-r border-border flex items-center justify-center p-6 min-h-[220px] md:min-h-0 shrink-0 relative overflow-hidden">
+        )}
+
+        {/* ── STATE B: REAL CARD LOADED & READY FOR OCR ── */}
+        {viewState === "card_selected" && selectedFile && (
+          <div className="rounded-3xl border border-border bg-card shadow-xl overflow-hidden animate-in fade-in duration-200">
+            <div className="p-4 sm:p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="bg-emerald-500/10 p-2 rounded-xl text-emerald-600 dark:text-emerald-400">
+                    <CheckCircle2 className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm sm:text-base text-foreground">
+                      Card Image Loaded
+                    </h3>
+                    <p className="text-[11px] text-muted-foreground break-all">
+                      {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearSelection}
+                  aria-label="Choose another image"
+                  className="h-11 w-11 p-0 rounded-full text-muted-foreground hover:text-foreground"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+
+              {/* Image Preview with scanning line if running */}
+              <div className="relative rounded-2xl overflow-hidden border border-border bg-slate-100 dark:bg-slate-900 aspect-[1.75/1] flex items-center justify-center">
                 {previewUrl && (
                   <img
                     src={previewUrl}
-                    alt="Business Card Preview"
-                    className="max-h-full max-w-full object-contain rounded-xl shadow-md border border-slate-200 dark:border-slate-800"
+                    alt="Card Preview"
+                    className="max-h-full max-w-full object-contain"
                   />
                 )}
-                {/* Laser scan line sweep when scanning */}
                 {isScanning && <div className="animate-scanline" />}
               </div>
 
-              {/* Status Details & Actions */}
-              <div className="flex-1 p-6 sm:p-8 flex flex-col justify-between gap-6 bg-background">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex min-w-0 items-center gap-2.5">
-                      <div className="bg-emerald-500/10 p-2 rounded-xl text-emerald-600 dark:text-emerald-400">
-                        <CheckCircle2 className="w-4 h-4" />
-                      </div>
-                      <div className="min-w-0">
-                        <h3 className="font-bold text-base text-foreground">Card Image Loaded</h3>
-                        <p className="break-all text-xs text-muted-foreground">{selectedFile.name}</p>
-                      </div>
-                    </div>
-                    <span className="inline-flex h-9 min-w-[78px] shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-muted px-3.5 text-xs font-semibold text-muted-foreground">
-                      {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+              {/* Scanning status */}
+              {isScanning ? (
+                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-border space-y-2">
+                  <div className="flex justify-between text-xs font-bold text-foreground">
+                    <span className="flex items-center gap-2">
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin text-brand" />
+                      Extracting contact details…
                     </span>
+                    <span>{scanProgress}%</span>
                   </div>
+                  <Progress value={scanProgress} className="h-2 rounded-full" />
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground text-center">
+                  Review before saving. OCR extracts details for your confirmation.
+                </p>
+              )}
 
-                  {/* Processing Status Checklist */}
+              {/* Actions */}
+              <div className="flex gap-2.5 pt-1">
+                <Button
+                  onClick={handleRealScan}
+                  disabled={isScanning}
+                  className="flex-1 h-12 text-xs sm:text-sm font-bold gap-2 rounded-xl bg-brand hover:bg-brand-hover text-white shadow-md shadow-brand/20"
+                >
                   {isScanning ? (
-                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 space-y-3">
-                      <div className="flex justify-between text-xs font-bold text-foreground">
-                        <span className="flex items-center gap-2">
-                          <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#007BC2]" />
-                          Analyzing business card…
-                        </span>
-                        <span>{scanProgress}%</span>
-                      </div>
-                      <Progress value={scanProgress} className="h-2 rounded-full" />
-                      <div className="space-y-1 pt-1 text-xs text-muted-foreground">
-                        <p className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-medium">
-                          <span>✓</span> Image uploaded & validated
-                        </p>
-                        <p className="flex items-center gap-2 text-foreground font-medium">
-                          <span>●</span> Extracting text & contact information...
-                        </p>
-                      </div>
-                    </div>
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      Processing OCR…
+                    </>
                   ) : (
-                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 text-xs text-muted-foreground leading-relaxed">
-                      <span role={scanError ? "alert" : undefined} className={scanError ? "text-red-700 font-medium" : undefined}>{scanError || "Your card is ready. Extract the details, then review them before saving."}</span>
-                    </div>
+                    <>
+                      <Scan className="w-4 h-4" />
+                      Scan & Extract Contact
+                    </>
                   )}
-                </div>
-
-                {/* Primary & Action Buttons */}
-                <div className="flex gap-2.5 pt-2">
-                  <Button
-                    onClick={handleScan}
-                    disabled={isScanning}
-                    className="flex-1 h-11 text-xs font-bold gap-2 rounded-xl bg-[#007BC2] hover:bg-[#0064a0] text-white shadow-md shadow-[#007BC2]/20"
-                  >
-                    {isScanning ? (
-                      <>
-                        <RefreshCw className="w-4 h-4 animate-spin" />
-                        Processing OCR…
-                      </>
-                    ) : (
-                      <>
-                        <Scan className="w-4 h-4" />
-                        Scan & Extract Contact
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={clearSelection}
-                    disabled={isScanning}
-                    className="h-11 w-11 rounded-xl p-0"
-                    title="Change card / Return to welcome screen"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsCameraOpen(true)}
-                    disabled={isScanning}
-                    className="h-11 w-11 rounded-xl p-0"
-                    title="Retake camera capture"
-                  >
-                    <Camera className="w-4 h-4" />
-                  </Button>
-                </div>
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={clearSelection}
+                  disabled={isScanning}
+                  className="h-12 w-12 rounded-xl p-0 shrink-0"
+                  title="Choose another image"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── STATE D: FAILURE / RECOVERY EXPERIENCE (4 Distinct Actions) ── */}
+        {viewState === "failure" && (
+          <div className="rounded-3xl border border-border bg-card p-6 sm:p-8 text-center space-y-6 shadow-xl animate-in zoom-in-95 duration-200 max-w-md mx-auto">
+            {/* Warning Icon */}
+            <div className="w-14 h-14 rounded-2xl bg-red-500/10 text-red-600 dark:text-red-400 flex items-center justify-center mx-auto">
+              <AlertTriangle className="w-7 h-7" />
+            </div>
+
+            {/* Error Copy */}
+            <div className="space-y-2">
+              <h3 className="text-xl font-extrabold text-foreground tracking-tight">
+                We couldn’t read this card.
+              </h3>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                {failureError ||
+                  "The image may be unclear or could not be processed. Try again or choose another option."}
+              </p>
+            </div>
+
+            {/* 4 Hierarchical Recovery Actions */}
+            <div className="flex flex-col gap-2.5 w-full pt-1">
+              {/* 1. Primary: Try again */}
+              <Button
+                size="lg"
+                onClick={() => {
+                  setViewState("idle");
+                  setIsCameraOpen(true);
+                }}
+                className="w-full h-12 rounded-xl bg-brand hover:bg-brand-hover text-white font-bold text-xs sm:text-sm min-h-[44px]"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Try again
+              </Button>
+
+              {/* 2. Secondary: Upload another image */}
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => {
+                  setViewState("idle");
+                  fileInputRef.current?.click();
+                }}
+                className="w-full h-12 rounded-xl border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-foreground font-semibold text-xs sm:text-sm min-h-[44px]"
+              >
+                <UploadCloud className="w-4 h-4 mr-2 text-brand" />
+                Upload another image
+              </Button>
+
+              {/* 3. Tertiary: Use demo card */}
+              <Button
+                variant="outline"
+                size="default"
+                onClick={handleTryDemo}
+                className="w-full h-11 rounded-xl border-brand/30 bg-brand/5 hover:bg-brand/15 text-brand font-semibold text-xs sm:text-sm min-h-[44px]"
+              >
+                <Play className="w-3.5 h-3.5 mr-2" />
+                Use demo card
+              </Button>
+
+              {/* 4. Quiet Tertiary: Enter details manually */}
+              <Button
+                variant="ghost"
+                size="default"
+                onClick={handleManualEntry}
+                className="w-full h-10 rounded-xl text-muted-foreground hover:text-foreground font-medium text-xs sm:text-sm"
+              >
+                <Edit3 className="w-3.5 h-3.5 mr-2" />
+                Enter details manually
+              </Button>
             </div>
           </div>
         )}
       </div>
 
+      {/* Review Modal */}
       <OCRReviewModal
         isOpen={isReviewModalOpen}
         setIsOpen={setIsReviewModalOpen}
         ocrData={ocrData}
         rawText={rawText}
-        originalImage={selectedFile!}
-        imageUrl={previewUrl!}
+        originalImage={selectedFile}
+        imageUrl={previewUrl}
+        isDemo={isDemoMode}
+        isManualEntry={isManualEntry}
         onSuccess={() => {
           setIsReviewModalOpen(false);
           clearSelection();
@@ -724,6 +968,3 @@ export default function ScanPage() {
     </>
   );
 }
-
-
-

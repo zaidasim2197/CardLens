@@ -5,18 +5,18 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { name: "Scan Card", to: "/", icon: Scan },
-  { name: "Verified Contacts", to: "/verified", icon: ListChecks },
+  { name: "Reviewed contacts", to: "/verified", icon: ListChecks },
 ];
 
 export default function Sidebar() {
   return (
     <aside className="hidden md:flex flex-col w-64 border-r bg-card shadow-sm h-full shrink-0">
-      <div className="p-6 pb-2">
-        <NavLink to="/" className="flex items-center gap-2">
+      <div className="p-6 pb-4">
+        <NavLink to="/" className="flex items-center hover:opacity-90 transition-opacity">
           <img
-            src="/Picture1.png"
-            alt="Aventure Aviation"
-            className="h-9 w-auto object-contain"
+            src="/cardsnap-brand-logo.png"
+            alt="CardSnap by Vision71"
+            className="h-14 sm:h-16 w-auto object-contain dark:brightness-0 dark:invert transition-transform hover:scale-[1.02]"
           />
         </NavLink>
       </div>

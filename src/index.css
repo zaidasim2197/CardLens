@@ -41,37 +41,6 @@
     @apply bg-slate-400 dark:bg-slate-600;
   }
 
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-
-    --radius: 0.5rem;
-  }
 
   * {
     @apply border-border outline-ring/50;
@@ -85,7 +54,7 @@
     @apply font-sans;
   }
 
-  /* Global Headings use Shree Devanagari for a bold, classy premium look */
+  /* A restrained type scale lets the original logo lead the identity. */
   h1,
   h2,
   h3,
@@ -94,10 +63,10 @@
   h6,
   .font-heading,
   .brand-font {
-    font-family: 'Shree Devanagari', 'Shree Devanagari 714', 'Plus Jakarta Sans Variable', sans-serif;
-    font-weight: 800;
-    -webkit-text-stroke: 0.3px currentColor;
-    letter-spacing: -0.015em;
+    font-family: 'Plus Jakarta Sans Variable', sans-serif;
+    font-weight: 650;
+    text-wrap: balance;
+    letter-spacing: -0.035em;
   }
 }
 
@@ -113,7 +82,21 @@
 }
 
 @theme inline {
-  --font-heading: 'Shree Devanagari', 'Shree Devanagari 714', 'Plus Jakarta Sans Variable', sans-serif;
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  /* Neutralize legacy slate surfaces consistently across existing screens. */
+  --color-slate-50: #faf9f7;
+  --color-slate-100: #f1f0ed;
+  --color-slate-200: #e5e3de;
+  --color-slate-300: #d0cdc6;
+  --color-slate-400: #827f78;
+  --color-slate-500: #706d66;
+  --color-slate-600: #5c5953;
+  --color-slate-700: #45433e;
+  --color-slate-800: #302f2c;
+  --color-slate-900: #222220;
+  --color-slate-950: #171715;
+  --font-heading: 'Plus Jakarta Sans Variable', sans-serif;
   --font-shree: 'Shree Devanagari', 'Shree Devanagari 714', sans-serif;
   --font-sans: 'Plus Jakarta Sans Variable', sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
@@ -157,8 +140,10 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --brand: #242321;
+  --brand-hover: #403e39;
+  --background: #f7f6f3;
+  --foreground: #242321;
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
@@ -168,13 +153,13 @@
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
+  --muted-foreground: #706d66;
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --border: #e5e3de;
+  --input: #dedbd4;
+  --ring: #82786a;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -217,7 +202,7 @@
   --chart-5: oklch(0.269 0 0);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary: oklch(0.708 0 0);
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
@@ -246,7 +231,69 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, transparent 0%, rgba(59, 130, 246, 0.9) 50%, transparent 100%);
-  box-shadow: 0 0 15px 3px rgba(59, 130, 246, 0.6);
-  animation: scanline 2s cubic-bezier(0.4, 0, 0.6, 1) infinite alternate;
+  background: linear-gradient(90deg, transparent 0%, rgba(90, 84, 74, 0.8) 50%, transparent 100%);
+  box-shadow: 0 0 12px 2px rgba(90, 84, 74, 0.15);
+  animation: scanline 2.2s cubic-bezier(0.4, 0, 0.6, 1) infinite alternate;
+}
+/* Brand finish: warm paper, graphite, and quiet depth. */
+body { -webkit-font-smoothing: antialiased; }
+.app-main {
+  background: radial-gradient(ellipse at 50% 0%, #ece9e2 0%, transparent 62%), var(--background);
+  scrollbar-gutter: stable;
+}
+.app-header { background: rgb(255 255 255 / 88%); }
+.app-header img { width: 112px; height: 58px; object-fit: contain; }
+.capture-eyebrow {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  color: #777064; font-size: 9px; font-weight: 700; letter-spacing: .18em;
+  margin-bottom: 17px;
+}
+.capture-eyebrow > span { width: 5px; height: 5px; border-radius: 50%; background: #95856c; }
+.scan-intro h1 { font-size: clamp(1.8rem, 4.4vw, 2.6rem); font-weight: 650; line-height: 1.17; }
+.headline-accent { color: #82745f; }
+.scan-intro p { max-width: 330px; font-size: 13px; line-height: 1.8; }
+.capture-surface {
+  border-color: #e5e1d9;
+  box-shadow: 0 12px 44px -24px rgb(49 40 27 / 24%), 0 2px 5px rgb(49 40 27 / 3%);
+}
+.card-stage { background: linear-gradient(135deg, #f7f6f3, #ece9e2); padding: 16px; }
+.card-stage > div:nth-of-type(-n+4) { border-color: #95856c; }
+.collection-summary { box-shadow: 0 3px 16px -10px rgb(49 40 27 / 15%); }
+.mobile-navigation { background: rgb(255 255 255 / 94%); box-shadow: 0 -6px 28px rgb(36 35 33 / 3%); }
+button, a, input, textarea, [role="button"], [data-slot="select-trigger"] { -webkit-tap-highlight-color: transparent; }
+button:not(:disabled), [role="button"], a { touch-action: manipulation; }
+button:focus-visible, a:focus-visible, [role="button"]:focus-visible {
+  outline: 2px solid var(--ring); outline-offset: 4px;
+}
+[data-slot="dialog-content"] { box-shadow: 0 24px 100px rgb(24 24 23 / 18%); }
+[data-slot="dialog-overlay"] { background: rgb(24 24 23 / 25%); }
+@media (prefers-reduced-motion: no-preference) {
+  .scan-intro { animation: settle-in 450ms ease-out both; }
+  .capture-surface { animation: settle-in 500ms 60ms ease-out both; }
+  .collection-summary { animation: settle-in 500ms 120ms ease-out both; }
+  button, a { transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease; }
+  button:active:not(:disabled) { transform: translateY(1px); }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .capture-surface button.bg-brand:hover { transform: translateY(-1px); box-shadow: 0 7px 16px rgb(36 35 33 / 15%); }
+}
+@keyframes settle-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 639px) {
+  .scan-workspace { max-width: 420px; }
+  .capture-surface { padding: 20px 16px 16px; }
+  .scan-intro { padding-inline: 4px; }
+  .card-stage { padding: 12px; }
+  input:not([type="checkbox"]):not([type="radio"]), textarea, select { font-size: 16px !important; }
+  button[data-slot="button"], [data-slot="select-trigger"], [data-slot="dialog-close"] { min-height: 44px; }
+  [data-slot="dialog-close"] { min-width: 44px; }
+  [data-slot="dialog-content"] { max-height: calc(100dvh - 1rem); overflow-y: auto; }
+}
+.dark .app-main { background: var(--background); }
+.dark .app-header, .dark .mobile-navigation { background: rgb(24 24 23 / 94%); }
+.dark .card-stage { background: #272624; }
+.dark .capture-surface { border-color: var(--border); }
+.dark .headline-accent, .dark .capture-eyebrow { color: #c3b49c; }
+.dark .text-brand { color: #d4cbbd; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }

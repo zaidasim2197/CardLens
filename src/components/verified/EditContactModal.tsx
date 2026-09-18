@@ -33,6 +33,11 @@ export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess 
       address: "",
       city: "",
       country: "",
+      metAt: "",
+      contactType: "",
+      interest: "",
+      relationshipOwner: "",
+      followUpDate: "",
       notes: ""
     }
   });
@@ -55,7 +60,9 @@ export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess 
           })
           .catch(() => {
             if (cancelled) return;
-            objectUrl = URL.createObjectURL(record.originalImage);
+            if (record.originalImage) {
+              objectUrl = URL.createObjectURL(record.originalImage);
+            }
             setCroppedImage(null);
             setImageUrl(objectUrl);
           });
@@ -86,6 +93,11 @@ export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess 
         address: data.address?.trim() || "",
         city: data.city?.trim() || "",
         country: data.country?.trim() || "",
+        metAt: data.metAt?.trim() || "",
+        contactType: data.contactType?.trim() || "",
+        interest: data.interest?.trim() || "",
+        relationshipOwner: data.relationshipOwner?.trim() || "",
+        followUpDate: data.followUpDate || "",
         notes: data.notes?.trim() || "",
       };
 
@@ -103,7 +115,7 @@ export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess 
       toast.success("Contact details updated successfully.");
       setIsOpen(false);
       if (onSuccess) onSuccess();
-    } catch (error) {
+    } catch {
       toast.error("Failed to update contact. Please try again.");
     }
   };
@@ -114,7 +126,7 @@ export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess 
         {/* Header */}
         <DialogHeader className="shrink-0 border-b bg-slate-50/50 p-4 pb-3 dark:bg-slate-900/50 sm:p-5 sm:pb-4 md:p-6 md:pb-4">
           <div className="flex items-center gap-3 pr-8">
-            <div className="bg-[#007BC2]/10 p-2.5 rounded-xl text-[#007BC2] shrink-0">
+            <div className="bg-brand/10 p-2.5 rounded-xl text-brand shrink-0">
               <UserCheck className="w-5 h-5" />
             </div>
             <div>
@@ -132,7 +144,7 @@ export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess 
           {imageUrl && (
             <div className="flex h-[190px] min-h-[190px] shrink-0 flex-col overflow-hidden border-b border-border bg-slate-100/70 p-3 dark:bg-slate-900/40 sm:h-[230px] sm:min-h-[230px] sm:p-4 lg:h-auto lg:min-h-0 lg:w-5/12 lg:border-b-0 lg:border-r lg:p-6">
               <div className="mb-2 flex shrink-0 items-center gap-1.5 self-start text-[10px] font-semibold uppercase tracking-wider text-muted-foreground sm:mb-3 sm:text-xs">
-                <CreditCard className="w-3.5 h-3.5 text-[#007BC2]" /> Scanned Card Reference
+                <CreditCard className="w-3.5 h-3.5 text-brand" /> Scanned Card Reference
               </div>
               <div className="flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden rounded-xl">
                 <img
@@ -155,17 +167,17 @@ export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2 space-y-1.5">
                     <Label htmlFor="fullName" className="font-semibold text-sm">Full Name</Label>
-                    <Input id="fullName" {...register("fullName")} placeholder="e.g. Qazi Nauman Mujahid" className="h-10" />
+                    <Input id="fullName" {...register("fullName")} placeholder="e.g. Daniel Rahman" className="h-10" />
                   </div>
 
                   <div className="space-y-1.5">
                     <Label htmlFor="companyName" className="font-semibold text-sm">Company Name</Label>
-                    <Input id="companyName" {...register("companyName")} placeholder="e.g. Digitech Infra" className="h-10" />
+                    <Input id="companyName" {...register("companyName")} placeholder="e.g. AeroSyn Tech Solutions" className="h-10" />
                   </div>
 
                   <div className="space-y-1.5">
                     <Label htmlFor="jobTitle" className="font-semibold text-sm">Job Title</Label>
-                    <Input id="jobTitle" {...register("jobTitle")} placeholder="e.g. Chief Executive Officer" className="h-10" />
+                    <Input id="jobTitle" {...register("jobTitle")} placeholder="e.g. Business Development Manager" className="h-10" />
                   </div>
                 </div>
               </div>
@@ -178,22 +190,66 @@ export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label htmlFor="email" className="font-semibold text-sm">Email Address</Label>
-                    <Input id="email" type="text" {...register("email")} placeholder="e.g. nauman@digitechinfra.com" className="h-10" />
+                    <Input id="email" type="text" {...register("email")} placeholder="e.g. name@example.com" className="h-10" />
                   </div>
 
                   <div className="space-y-1.5">
                     <Label htmlFor="phone" className="font-semibold text-sm">Phone Number</Label>
-                    <Input id="phone" type="text" {...register("phone")} placeholder="e.g. +92 317 6688855" className="h-10" />
+                    <Input id="phone" type="text" {...register("phone")} placeholder="e.g. +1 (555) 284-7712" className="h-10" />
                   </div>
 
                   <div className="space-y-1.5">
                     <Label htmlFor="alternatePhone" className="font-semibold text-sm">Alternate Phone</Label>
-                    <Input id="alternatePhone" type="text" {...register("alternatePhone")} placeholder="e.g. +92 300 1234567" className="h-10" />
+                    <Input id="alternatePhone" type="text" {...register("alternatePhone")} placeholder="e.g. +1 (555) 284-7700" className="h-10" />
                   </div>
 
                   <div className="space-y-1.5">
                     <Label htmlFor="website" className="font-semibold text-sm">Website</Label>
-                    <Input id="website" type="text" {...register("website")} placeholder="e.g. www.digitechinfra.com" className="h-10" />
+                    <Input id="website" type="text" {...register("website")} placeholder="e.g. www.example.com" className="h-10" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Meeting Context Group */}
+              <div className="space-y-4 pt-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground border-b pb-1">
+                  Meeting Context (Optional)
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="metAt" className="font-semibold text-sm">Met at / Location</Label>
+                    <Input id="metAt" {...register("metAt")} placeholder="e.g. Tech Expo, Booth 410" className="h-10" />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="contactType" className="font-semibold text-sm">Contact Type</Label>
+                    <select
+                      id="contactType"
+                      {...register("contactType")}
+                      className="w-full h-10 px-3 text-sm rounded-md border border-input bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <option value="">Select type…</option>
+                      <option value="Prospect">Prospect</option>
+                      <option value="Customer">Customer</option>
+                      <option value="Supplier">Supplier</option>
+                      <option value="Partner">Partner</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="interest" className="font-semibold text-sm">Product or Interest</Label>
+                    <Input id="interest" {...register("interest")} placeholder="e.g. Workflow integration" className="h-10" />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="relationshipOwner" className="font-semibold text-sm">Relationship Owner</Label>
+                    <Input id="relationshipOwner" {...register("relationshipOwner")} placeholder="e.g. Sales Team" className="h-10" />
+                  </div>
+
+                  <div className="md:col-span-2 space-y-1.5">
+                    <Label htmlFor="followUpDate" className="font-semibold text-sm">Suggested Follow-up Date</Label>
+                    <Input id="followUpDate" type="date" {...register("followUpDate")} className="h-10" />
                   </div>
                 </div>
               </div>
@@ -206,17 +262,17 @@ export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2 space-y-1.5">
                     <Label htmlFor="address" className="font-semibold text-sm">Street Address</Label>
-                    <Input id="address" {...register("address")} placeholder="e.g. Suite 400, Tech Tower" className="h-10" />
+                    <Input id="address" {...register("address")} placeholder="e.g. 1200 Innovation Drive, Suite 410" className="h-10" />
                   </div>
 
                   <div className="space-y-1.5">
                     <Label htmlFor="city" className="font-semibold text-sm">City</Label>
-                    <Input id="city" {...register("city")} placeholder="e.g. Karachi" className="h-10" />
+                    <Input id="city" {...register("city")} placeholder="e.g. New York" className="h-10" />
                   </div>
 
                   <div className="space-y-1.5">
                     <Label htmlFor="country" className="font-semibold text-sm">Country</Label>
-                    <Input id="country" {...register("country")} placeholder="e.g. Pakistan" className="h-10" />
+                    <Input id="country" {...register("country")} placeholder="e.g. USA" className="h-10" />
                   </div>
 
                   <div className="md:col-span-2 space-y-1.5">
@@ -225,7 +281,7 @@ export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess 
                       id="notes"
                       rows={3}
                       {...register("notes")}
-                      placeholder="Additional notes or meeting context..."
+                      placeholder="Additional notes or discussion context..."
                       className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
                     />
                   </div>
@@ -240,15 +296,15 @@ export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess 
           <Button
             type="button"
             variant="outline"
-            className="h-10 px-4 rounded-xl text-xs font-semibold border-[#007BC2]/40 text-[#007BC2] bg-[#007BC2]/5 hover:bg-[#007BC2]/15 hover:border-[#007BC2] transition-all gap-1.5"
+            className="h-10 px-4 rounded-xl text-xs font-semibold border-brand/40 text-brand bg-brand/5 hover:bg-brand/15 hover:border-brand transition-all gap-1.5"
             onClick={() => setIsOpen(false)}
           >
-            <X className="w-4 h-4 text-[#007BC2]" /> Cancel
+            <X className="w-4 h-4 text-brand" /> Cancel
           </Button>
           <Button
             type="submit"
             form="edit-contact-form"
-            className="h-10 px-5 rounded-xl font-bold text-xs bg-[#007BC2] hover:bg-[#0064a0] text-white shadow-md shadow-[#007BC2]/20 gap-1.5"
+            className="h-10 px-5 rounded-xl font-bold text-xs bg-brand hover:bg-brand-hover text-white shadow-md shadow-brand/20 gap-1.5"
           >
             <Save className="w-4 h-4 text-white" /> Save Changes
           </Button>
