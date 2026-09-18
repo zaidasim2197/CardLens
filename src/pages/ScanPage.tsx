@@ -315,7 +315,7 @@ function CameraModal({
           <X className="w-4 h-4" />
           Cancel
         </button>
-        
+
         {/* Step Indicator Pill */}
         <div className="flex items-center gap-1.5 bg-black/50 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/15">
           <span className={`w-2 h-2 rounded-full ${step === "FRONT" ? "bg-white animate-pulse" : "bg-emerald-400"}`} />
@@ -328,7 +328,7 @@ function CameraModal({
       {/* ── Bottom HUD ── */}
       {status === "live" && (
         <div className="absolute bottom-0 inset-x-0 z-20 p-6 pb-[max(env(safe-area-inset-bottom,24px),24px)] bg-gradient-to-t from-black/90 via-black/50 to-transparent flex flex-col items-center gap-4">
-          
+
           {/* Secondary Action Bar when in Step 2 */}
           {step === "BACK" && (
             <div className="flex items-center gap-2">
@@ -627,7 +627,7 @@ export default function ScanPage() {
 
               {/* Hero Headings */}
               <div className="space-y-3 max-w-3xl mx-auto pt-1">
-                <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.18]">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight text-slate-900 dark:text-white leading-[1.18]">
                   Turn business cards into<br className="hidden sm:block" />{" "}
                   <span className="text-slate-900 dark:text-white bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 dark:from-white dark:via-slate-200 dark:to-slate-400 bg-clip-text text-transparent inline-block">
                     reviewed contacts.
