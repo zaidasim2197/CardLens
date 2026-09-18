@@ -434,8 +434,8 @@ export default function ScanPage() {
       toast.error("Invalid file type. Please upload a JPG, PNG, or WEBP image.");
       return;
     }
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("File size must be less than 10 MB.");
+    if (file.size > 1.5 * 1024 * 1024) {
+      toast.error("File size must be less than 1.5 MB.");
       return;
     }
     try {
@@ -486,6 +486,27 @@ export default function ScanPage() {
     if (!selectedFile) return;
     setScanError(null);
     setIsReviewModalOpen(false);
+
+    // ── Demo card shortcut: skip OCR entirely, use pre-baked data ──
+    // This handles the case where the user dismisses the review popup
+    // then clicks "Scan & Extract" again on the already-loaded demo file.
+    if (isDemoMode || selectedFile.name === "democard.png") {
+      setIsScanning(true);
+      setScanProgress(40);
+      const timer = setInterval(() => setScanProgress((p) => (p < 90 ? p + 25 : p)), 150);
+      setTimeout(() => {
+        clearInterval(timer);
+        setScanProgress(100);
+        setIsScanning(false);
+        setOcrData(SINGLE_DEMO_CARD.preparedData);
+        setRawText(SINGLE_DEMO_CARD.rawOCRText);
+        setIsDemoMode(true);
+        setIsReviewModalOpen(true);
+        setTimeout(() => setScanProgress(0), 400);
+      }, 600);
+      return;
+    }
+
     setIsScanning(true);
     setScanProgress(15);
 
@@ -765,7 +786,7 @@ export default function ScanPage() {
               </div>
 
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-5 font-medium">
-                Supports JPG, PNG or WEBP up to 10 MB. Drag & drop image anywhere above.
+                Supports JPG, PNG or WEBP up to 1.5 MB. Drag & drop image anywhere above.
               </p>
             </div>
 

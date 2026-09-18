@@ -7,7 +7,7 @@ import { parseOCRText } from "../services/cardParser.js";
 const router = express.Router();
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  limits: { fileSize: 1.5 * 1024 * 1024 }, // 1.5 MB — OCR.space free plan limit
 });
 
 router.post(
