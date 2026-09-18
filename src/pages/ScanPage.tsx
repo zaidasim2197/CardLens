@@ -885,12 +885,13 @@ export default function ScanPage() {
                   )}
                 </div>
 
-                {/* Actions - Flexible Responsive Layout for Desktop & Mobile so no buttons ever crop */}
-                <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 pt-2 min-w-0 w-full">
+                {/* Actions — Primary full-width, secondary responsive grid */}
+                <div className="flex flex-col gap-2.5 pt-2 w-full">
+                  {/* Primary CTA — always full width */}
                   <Button
                     onClick={handleScan}
                     disabled={isScanning}
-                    className="h-11 px-4 sm:px-5 rounded-xl text-xs sm:text-sm font-bold bg-slate-900 hover:bg-black dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 shadow-md shadow-slate-900/20 flex items-center justify-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
+                    className="w-full h-11 rounded-xl text-sm font-semibold bg-slate-900 hover:bg-black dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 shadow-md shadow-slate-900/20 flex items-center justify-center gap-2 cursor-pointer"
                   >
                     {isScanning ? (
                       <>
@@ -898,40 +899,74 @@ export default function ScanPage() {
                       </>
                     ) : (
                       <>
-                        <Scan className="w-4 h-4 text-white dark:text-slate-900" /> Scan & Extract Contact
+                        <Scan className="w-4 h-4 text-white dark:text-slate-900" /> Scan &amp; Extract Contact
                       </>
                     )}
                   </Button>
 
-                  <Button
-                    variant="outline"
-                    onClick={clearSelection}
-                    disabled={isScanning}
-                    className="h-11 px-3.5 rounded-xl text-xs font-semibold border-slate-200 dark:border-slate-800 whitespace-nowrap cursor-pointer"
-                  >
-                    Change Image
-                  </Button>
+                  {/* Secondary actions:
+                      Mobile  → Change Image full-width, then Retake | Cancel in 2-col
+                      sm+     → all three in a flat 3-col grid                         */}
+                  <div className="flex flex-col sm:hidden gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={clearSelection}
+                      disabled={isScanning}
+                      className="w-full h-10 rounded-xl text-xs font-semibold border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-900/5 dark:hover:bg-slate-800/60 cursor-pointer"
+                    >
+                      Change Image
+                    </Button>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsCameraOpen(true)}
+                        disabled={isScanning}
+                        className="h-10 rounded-xl text-xs font-semibold border-slate-900/20 dark:border-slate-700 text-slate-900 dark:text-white bg-slate-900/5 dark:bg-slate-800/40 hover:bg-slate-900/10 dark:hover:bg-slate-800 hover:border-slate-900/40 flex items-center justify-center gap-1.5 cursor-pointer"
+                        title="Retake camera capture"
+                      >
+                        <Camera className="w-3.5 h-3.5" /><span>Retake</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={clearSelection}
+                        disabled={isScanning}
+                        className="h-10 rounded-xl text-xs font-semibold border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-900/5 dark:hover:bg-slate-800/60 flex items-center justify-center gap-1.5 cursor-pointer"
+                        title="Return to welcome screen"
+                      >
+                        <X className="w-3.5 h-3.5" /><span>Cancel</span>
+                      </Button>
+                    </div>
+                  </div>
 
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsCameraOpen(true)}
-                    disabled={isScanning}
-                    className="h-11 px-3.5 rounded-xl text-xs font-semibold border-slate-900/30 dark:border-slate-700 text-slate-900 dark:text-white bg-slate-900/5 dark:bg-slate-800/50 hover:bg-slate-900/10 dark:hover:bg-slate-800 hover:border-slate-900 flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer"
-                    title="Retake camera capture"
-                  >
-                    <Camera className="w-4 h-4 text-slate-900 dark:text-white" />
-                    <span>Retake</span>
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    onClick={clearSelection}
-                    disabled={isScanning}
-                    className="h-11 w-11 shrink-0 rounded-xl p-0 flex items-center justify-center border-slate-200 dark:border-slate-800"
-                    title="Return to welcome screen"
-                  >
-                    <X className="w-4 h-4 text-slate-500" />
-                  </Button>
+                  {/* sm+ flat 3-col */}
+                  <div className="hidden sm:grid sm:grid-cols-3 gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={clearSelection}
+                      disabled={isScanning}
+                      className="h-10 rounded-xl text-xs font-semibold border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-900/5 dark:hover:bg-slate-800/60 cursor-pointer"
+                    >
+                      Change Image
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsCameraOpen(true)}
+                      disabled={isScanning}
+                      className="h-10 rounded-xl text-xs font-semibold border-slate-900/20 dark:border-slate-700 text-slate-900 dark:text-white bg-slate-900/5 dark:bg-slate-800/40 hover:bg-slate-900/10 dark:hover:bg-slate-800 hover:border-slate-900/40 flex items-center justify-center gap-1.5 cursor-pointer"
+                      title="Retake camera capture"
+                    >
+                      <Camera className="w-3.5 h-3.5" /><span>Retake</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={clearSelection}
+                      disabled={isScanning}
+                      className="h-10 rounded-xl text-xs font-semibold border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-900/5 dark:hover:bg-slate-800/60 flex items-center justify-center gap-1.5 cursor-pointer"
+                      title="Return to welcome screen"
+                    >
+                      <X className="w-3.5 h-3.5" /><span>Cancel</span>
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { Save, X, UserCheck, CreditCard } from "lucide-react";
+import { Save, X, UserCheck, CreditCard, ChevronDown } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +40,7 @@ interface EditFormData {
 export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess }: Props) {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [croppedImage, setCroppedImage] = useState<File | null>(null);
+  const [isMeetingContextOpen, setIsMeetingContextOpen] = useState(false);
 
   const { register, handleSubmit, reset, watch, setValue } = useForm<EditFormData>({
     defaultValues: {
@@ -257,43 +258,58 @@ export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess 
                 </div>
               </div>
 
-              {/* Meeting Context Group */}
-              <div className="space-y-4 pt-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground border-b pb-1">
-                  Meeting Context (Optional)
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="metAtLocation" className="font-semibold text-sm">Met at / Event / Location</Label>
-                    <Input id="metAtLocation" {...register("metAtLocation")} placeholder="e.g. MRO Aviation Trade Show" className="h-10" />
+              {/* Meeting Context Group (Collapsible Dropdown) */}
+              <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden transition-all bg-slate-50/60 dark:bg-slate-900/40">
+                <button
+                  type="button"
+                  onClick={() => setIsMeetingContextOpen(!isMeetingContextOpen)}
+                  className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-slate-100/80 dark:hover:bg-slate-800/60 transition-colors cursor-pointer"
+                >
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                    Meeting Context (Optional)
+                  </span>
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
+                    <span>{isMeetingContextOpen ? "Hide" : "Add details"}</span>
+                    <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isMeetingContextOpen ? "rotate-180" : ""}`} />
                   </div>
+                </button>
 
-                  <div className="space-y-1.5">
-                    <Label htmlFor="contactType" className="font-semibold text-sm text-slate-900 dark:text-slate-100">Contact Type</Label>
-                    <ModernContactTypeSelect
-                      value={watch("contactType") || ""}
-                      onChange={(val) => setValue("contactType", val, { shouldDirty: true })}
-                    />
-                  </div>
+                {isMeetingContextOpen && (
+                  <div className="p-4 border-t border-slate-200 dark:border-slate-800 space-y-4 bg-white dark:bg-slate-950">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="metAtLocation" className="font-semibold text-sm">Met at / Event / Location</Label>
+                        <Input id="metAtLocation" {...register("metAtLocation")} placeholder="e.g. MRO Aviation Trade Show" className="h-10" />
+                      </div>
 
-                  <div className="space-y-1.5">
-                    <Label htmlFor="productInterest" className="font-semibold text-sm">Product / Interest</Label>
-                    <Input id="productInterest" {...register("productInterest")} placeholder="e.g. Component Repair & Supply" className="h-10" />
-                  </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="contactType" className="font-semibold text-sm text-slate-900 dark:text-slate-100">Contact Type</Label>
+                        <ModernContactTypeSelect
+                          value={watch("contactType") || ""}
+                          onChange={(val) => setValue("contactType", val, { shouldDirty: true })}
+                        />
+                      </div>
 
-                  <div className="space-y-1.5">
-                    <Label htmlFor="relationshipOwner" className="font-semibold text-sm">Relationship Owner / Salesperson</Label>
-                    <Input id="relationshipOwner" {...register("relationshipOwner")} placeholder="e.g. Lead Sales Exec" className="h-10" />
-                  </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="productInterest" className="font-semibold text-sm">Product / Interest</Label>
+                        <Input id="productInterest" {...register("productInterest")} placeholder="e.g. Component Repair & Supply" className="h-10" />
+                      </div>
 
-                  <div className="md:col-span-2 space-y-1.5">
-                    <Label htmlFor="followUpDate" className="font-semibold text-sm text-slate-900 dark:text-slate-100">Suggested Follow-up Date</Label>
-                    <ModernDatePicker
-                      value={watch("followUpDate") || ""}
-                      onChange={(val) => setValue("followUpDate", val, { shouldDirty: true })}
-                    />
+                      <div className="space-y-1.5">
+                        <Label htmlFor="relationshipOwner" className="font-semibold text-sm">Relationship Owner / Salesperson</Label>
+                        <Input id="relationshipOwner" {...register("relationshipOwner")} placeholder="e.g. Lead Sales Exec" className="h-10" />
+                      </div>
+
+                      <div className="md:col-span-2 space-y-1.5">
+                        <Label htmlFor="followUpDate" className="font-semibold text-sm text-slate-900 dark:text-slate-100">Suggested Follow-up Date</Label>
+                        <ModernDatePicker
+                          value={watch("followUpDate") || ""}
+                          onChange={(val) => setValue("followUpDate", val, { shouldDirty: true })}
+                        />
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Location & Notes Group */}

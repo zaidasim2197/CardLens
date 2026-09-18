@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Save, X, AlertCircle, CheckCircle2, ArrowRight, RefreshCw, ZoomIn, ChevronDown, Calendar, ChevronLeft } from "lucide-react";
+import { Save, X, AlertCircle, CheckCircle2, ArrowRight, RefreshCw, ZoomIn, ChevronDown, Calendar, ChevronLeft, Mail } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -373,6 +373,7 @@ export default function OCRReviewModal({
   } | null>(null);
   const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState(false);
   const [isZoomImageOpen, setIsZoomImageOpen] = useState(false);
+  const [isMeetingContextOpen, setIsMeetingContextOpen] = useState(false);
 
   const {
     register,
@@ -405,6 +406,22 @@ export default function OCRReviewModal({
 
   const formValues = watch();
 
+  const metAtLoc = watch("metAtLocation");
+  const cType = watch("contactType");
+  const pInterest = watch("productInterest");
+  const rOwner = watch("relationshipOwner");
+  const fUpDate = watch("followUpDate");
+  const notesVal = watch("notes");
+
+  const hasMeetingContextData = Boolean(
+    (metAtLoc && metAtLoc.trim() !== "") ||
+    (cType && cType.trim() !== "") ||
+    (pInterest && pInterest.trim() !== "") ||
+    (rOwner && rOwner.trim() !== "") ||
+    (fUpDate && fUpDate.trim() !== "") ||
+    (notesVal && notesVal.trim() !== "")
+  );
+
   useEffect(() => {
     if (isOpen && ocrData) {
       reset({
@@ -427,6 +444,7 @@ export default function OCRReviewModal({
       });
       setSavedRecord(null);
       setDuplicateMatch(null);
+      setIsMeetingContextOpen(false);
     }
   }, [isOpen, ocrData, reset]);
 
@@ -598,62 +616,60 @@ export default function OCRReviewModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className={savedRecord ? "max-w-md w-[92vw] p-6 sm:p-7 rounded-3xl border border-border shadow-2xl bg-background" : "w-[95vw] max-w-[95vw] sm:max-w-[90vw] lg:max-w-6xl max-h-[92vh] sm:max-h-[90vh] p-0 overflow-hidden flex flex-col bg-background rounded-2xl border shadow-2xl"}>
+        <DialogContent className={savedRecord ? "max-w-md w-[92vw] sm:max-w-[460px] p-5 sm:p-7 rounded-3xl border border-border shadow-2xl bg-background overflow-hidden" : "w-[95vw] max-w-[95vw] sm:max-w-[90vw] lg:max-w-6xl max-h-[92vh] sm:max-h-[90vh] p-0 overflow-hidden flex flex-col bg-background rounded-2xl border shadow-2xl"}>
           {/* ── SUCCESS STATE VIEW ──────────────────────────────────── */}
           {savedRecord ? (
-            <div className="flex flex-col items-center text-center py-2">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-4">
+            <div className="flex flex-col items-center text-center py-2 sm:py-3 px-1">
+              <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-4 shadow-xs">
                 <CheckCircle2 className="w-8 h-8" />
               </div>
 
-              <div className="space-y-1">
-
-                <div className="flex items-center justify-center gap-2">
-                  <h3 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
-                    Contact Saved Successfully
-                  </h3>
-
-                </div>
-
-                <p className="text-xs text-muted-foreground max-w-xs mx-auto">
+              <div className="space-y-1.5 max-w-sm mx-auto">
+                <h3 className="text-xl sm:text-2xl font-semibold text-foreground tracking-tight">
+                  Contact Saved Successfully
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
                   The reviewed business card details have been saved to local workspace.
                 </p>
               </div>
 
               {/* Compact Saved Contact Card */}
-              <div className="w-full p-4 rounded-2xl border border-border bg-slate-50 dark:bg-slate-900/50 text-left space-y-2 my-4">
-                <div>
-                  <h4 className="font-bold text-sm text-foreground">
-
-                    {savedRecord.verifiedData.fullName || savedRecord.verifiedData.companyName || "Saved Contact"}
-                  </h4>
+              <div className="w-full p-4 sm:p-5 rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 text-left space-y-3 my-5 shadow-xs">
+                <div className="space-y-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <h4 className="font-semibold text-base text-foreground leading-snug">
+                      {savedRecord.verifiedData.fullName || savedRecord.verifiedData.companyName || "Saved Contact"}
+                    </h4>
+                    {savedRecord.isDemo && (
+                      <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider bg-slate-900 text-white dark:bg-white dark:text-slate-900 px-2.5 py-0.5 rounded-full">
+                        Demo Contact
+                      </span>
+                    )}
+                  </div>
+                  
                   {savedRecord.verifiedData.jobTitle && (
-                    <p className="text-xs text-slate-900 dark:text-slate-100 font-semibold">
+                    <p className="text-xs text-slate-700 dark:text-slate-300 font-medium">
                       {savedRecord.verifiedData.jobTitle}
                     </p>
                   )}
                   {savedRecord.verifiedData.companyName && (
-                    <p className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                    <p className="text-xs font-normal text-slate-500 dark:text-slate-400">
                       {savedRecord.verifiedData.companyName}
                     </p>
-                  )}
-                  {savedRecord.isDemo && (
-                    <span className="text-[10px] font-bold uppercase tracking-wider bg-slate-900/10 text-slate-900 dark:bg-white/10 dark:text-white px-2 py-0.5 rounded-full border border-slate-900/20 dark:border-white/20">
-                      Demo Contact
-                    </span>
                   )}
                 </div>
 
                 {savedRecord.verifiedData.email && (
-                  <p className="text-xs text-muted-foreground pt-2 border-t border-border/50">
-                    ✉ {savedRecord.verifiedData.email}
-                  </p>
+                  <div className="pt-2.5 border-t border-slate-200/80 dark:border-slate-800/80 flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
+                    <Mail className="w-3.5 h-3.5 shrink-0 text-slate-500" />
+                    <span className="truncate">{savedRecord.verifiedData.email}</span>
+                  </div>
                 )}
 
                 {savedRecord.verifiedData.meetingContext?.metAtLocation && (
-                  <div className="pt-2 border-t border-border/50 text-[11px] text-slate-600 dark:text-slate-400 space-y-0.5">
-                    <div className="font-semibold text-slate-800 dark:text-slate-200">
-                      Meeting Context:
+                  <div className="pt-2.5 border-t border-slate-200/80 dark:border-slate-800/80 text-xs text-slate-600 dark:text-slate-400 space-y-1">
+                    <div className="font-semibold text-slate-900 dark:text-slate-100 text-[11px] uppercase tracking-wider">
+                      Meeting Context
                     </div>
                     <div>📍 Met at: {savedRecord.verifiedData.meetingContext.metAtLocation}</div>
                     {savedRecord.verifiedData.meetingContext.contactType && (
@@ -663,10 +679,11 @@ export default function OCRReviewModal({
                 )}
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full">
+              {/* Clean Stacked Action Buttons */}
+              <div className="flex flex-col gap-2.5 w-full">
                 <Button
                   size="default"
-                  className="w-full sm:w-1/2 font-semibold text-xs h-10 rounded-xl bg-slate-900 text-white hover:bg-black dark:bg-white dark:hover:bg-slate-100 dark:text-slate-900 shadow-md shadow-slate-900/20 cursor-pointer"
+                  className="w-full font-semibold text-xs h-11 rounded-xl bg-slate-900 text-white hover:bg-black dark:bg-white dark:hover:bg-slate-100 dark:text-slate-900 shadow-md shadow-slate-900/10 cursor-pointer"
                   onClick={onSuccess}
                 >
                   Scan Another Card
@@ -675,7 +692,7 @@ export default function OCRReviewModal({
                 <Button
                   variant="outline"
                   size="default"
-                  className="w-full sm:w-1/2 font-semibold text-xs h-10 rounded-xl gap-1.5 border-slate-900/30 dark:border-slate-700 text-slate-900 dark:text-white bg-slate-900/5 dark:bg-slate-800/50 hover:bg-slate-900/10 dark:hover:bg-slate-800 hover:border-slate-900 transition-all cursor-pointer"
+                  className="w-full font-semibold text-xs h-11 rounded-xl gap-2 border-slate-900/25 dark:border-slate-700 text-slate-900 dark:text-white bg-slate-900/5 dark:bg-slate-800/50 hover:bg-slate-900/10 dark:hover:bg-slate-800 hover:border-slate-900 transition-all cursor-pointer"
                   onClick={() => {
                     setIsOpen(false);
                     onSuccess();
@@ -758,75 +775,95 @@ export default function OCRReviewModal({
                       </div>
                     </div>
 
-                    {/* Section 2: Meeting Context */}
-                    <div className="space-y-4 pt-2">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground border-b pb-1.5 flex items-center justify-between">
-                        <span>Meeting Context (Optional)</span>
-
-                      </h4>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                          <Label htmlFor="metAtLocation" className="font-semibold text-xs sm:text-sm">
-                            Met at / Event / Location
-                          </Label>
-                          <Input
-                            id="metAtLocation"
-                            {...register("metAtLocation")}
-                            placeholder="e.g. MRO Aviation Trade Show"
-                            className="h-10 text-sm"
-                          />
+                    {/* Section 2: Meeting Context (Collapsible Dropdown) */}
+                    <div className="mt-4 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden transition-all bg-slate-50/60 dark:bg-slate-900/40">
+                      <button
+                        type="button"
+                        onClick={() => setIsMeetingContextOpen(!isMeetingContextOpen)}
+                        className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-slate-100/80 dark:hover:bg-slate-800/60 transition-colors cursor-pointer"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                            Meeting Context (Optional)
+                          </span>
+                          {hasMeetingContextData && (
+                            <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-900 text-white dark:bg-white dark:text-slate-900 rounded-full">
+                              Filled
+                            </span>
+                          )}
                         </div>
-
-                        <div className="space-y-1.5">
-                          <Label htmlFor="contactType" className="font-semibold text-xs sm:text-sm text-slate-900 dark:text-slate-100">
-                            Contact Type
-                          </Label>
-                          <ModernContactTypeSelect
-                            value={watch("contactType") || ""}
-                            onChange={(val) => setValue("contactType", val, { shouldDirty: true })}
-                          />
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
+                          <span>{isMeetingContextOpen ? "Hide" : "Add details"}</span>
+                          <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isMeetingContextOpen ? "rotate-180" : ""}`} />
                         </div>
+                      </button>
 
-                        <div className="space-y-1.5">
-                          <Label htmlFor="productInterest" className="font-semibold text-xs sm:text-sm">
-                            Product / Interest
-                          </Label>
-                          <Input
-                            id="productInterest"
-                            {...register("productInterest")}
-                            placeholder="e.g. Component Repair & Supply"
-                            className="h-11 text-sm rounded-xl"
-                          />
+                      {isMeetingContextOpen && (
+                        <div className="p-4 border-t border-slate-200 dark:border-slate-800 space-y-4 bg-white dark:bg-slate-950">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                              <Label htmlFor="metAtLocation" className="font-semibold text-xs sm:text-sm">
+                                Met at / Event / Location
+                              </Label>
+                              <Input
+                                id="metAtLocation"
+                                {...register("metAtLocation")}
+                                placeholder="e.g. MRO Aviation Trade Show"
+                                className="h-10 text-sm"
+                              />
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <Label htmlFor="contactType" className="font-semibold text-xs sm:text-sm text-slate-900 dark:text-slate-100">
+                                Contact Type
+                              </Label>
+                              <ModernContactTypeSelect
+                                value={watch("contactType") || ""}
+                                onChange={(val) => setValue("contactType", val, { shouldDirty: true })}
+                              />
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <Label htmlFor="productInterest" className="font-semibold text-xs sm:text-sm">
+                                Product / Interest
+                              </Label>
+                              <Input
+                                id="productInterest"
+                                {...register("productInterest")}
+                                placeholder="e.g. Component Repair & Supply"
+                                className="h-11 text-sm rounded-xl"
+                              />
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <Label htmlFor="relationshipOwner" className="font-semibold text-xs sm:text-sm">
+                                Relationship Owner / Salesperson
+                              </Label>
+                              <Input
+                                id="relationshipOwner"
+                                {...register("relationshipOwner")}
+                                placeholder="e.g. Lead Sales Exec"
+                                className="h-11 text-sm rounded-xl"
+                              />
+                            </div>
+
+                            <div className="space-y-2 sm:col-span-2">
+                              <Label htmlFor="followUpDate" className="font-semibold text-xs sm:text-sm text-slate-900 dark:text-slate-100">
+                                Suggested Follow-up Date
+                              </Label>
+
+                              <ModernDatePicker
+                                value={watch("followUpDate") || ""}
+                                onChange={(val) => setValue("followUpDate", val, { shouldDirty: true })}
+                              />
+                            </div>
+
+                            <div className="sm:col-span-2">
+                              {renderField("Notes & Meeting Context", "notes")}
+                            </div>
+                          </div>
                         </div>
-
-                        <div className="space-y-1.5">
-                          <Label htmlFor="relationshipOwner" className="font-semibold text-xs sm:text-sm">
-                            Relationship Owner / Salesperson
-                          </Label>
-                          <Input
-                            id="relationshipOwner"
-                            {...register("relationshipOwner")}
-                            placeholder="e.g. Lead Sales Exec"
-                            className="h-11 text-sm rounded-xl"
-                          />
-                        </div>
-
-                        <div className="space-y-2 sm:col-span-2">
-                          <Label htmlFor="followUpDate" className="font-semibold text-xs sm:text-sm text-slate-900 dark:text-slate-100">
-                            Suggested Follow-up Date
-                          </Label>
-
-                          <ModernDatePicker
-                            value={watch("followUpDate") || ""}
-                            onChange={(val) => setValue("followUpDate", val, { shouldDirty: true })}
-                          />
-                        </div>
-
-                        <div className="sm:col-span-2">
-                          {renderField("Notes & Meeting Context", "notes")}
-                        </div>
-                      </div>
+                      )}
                     </div>
                   </form>
                 </div>
