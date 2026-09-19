@@ -530,22 +530,6 @@ export default function OCRReviewModal({
 
   const formValues = watch();
 
-  const metAtLoc = watch("metAtLocation");
-  const cType = watch("contactType");
-  const pInterest = watch("productInterest");
-  const rOwner = watch("relationshipOwner");
-  const fUpDate = watch("followUpDate");
-  const notesVal = watch("notes");
-
-  const hasMeetingContextData = Boolean(
-    (metAtLoc && metAtLoc.trim() !== "") ||
-    (cType && cType.trim() !== "") ||
-    (pInterest && pInterest.trim() !== "") ||
-    (rOwner && rOwner.trim() !== "") ||
-    (fUpDate && fUpDate.trim() !== "") ||
-    (notesVal && notesVal.trim() !== "")
-  );
-
   useEffect(() => {
     if (isOpen && ocrData) {
       reset({
