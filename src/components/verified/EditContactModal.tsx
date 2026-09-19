@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { storageService } from "@/lib/db";
 import { cropBusinessCardImage } from "@/lib/imageCrop";
 import type { ContactRecord, OCRData } from "@/types";
-import { ModernContactTypeSelect, ModernDatePicker } from "../scanner/OCRReviewModal";
+import { ModernContactTypeSelect, ModernFieldSelect, MET_AT_OPTIONS, PRODUCT_INTEREST_OPTIONS, RELATIONSHIP_OWNER_OPTIONS } from "../scanner/OCRReviewModal";
 
 interface Props {
   isOpen: boolean;
@@ -277,34 +277,45 @@ export default function EditContactModal({ isOpen, setIsOpen, record, onSuccess 
                 {isMeetingContextOpen && (
                   <div className="p-4 border-t border-slate-200 dark:border-slate-800 space-y-4 bg-white dark:bg-slate-950">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Met at / Event / Location */}
                       <div className="space-y-1.5">
-                        <Label htmlFor="metAtLocation" className="font-semibold text-sm">Met at / Event / Location</Label>
-                        <Input id="metAtLocation" {...register("metAtLocation")} placeholder="e.g. MRO Aviation Trade Show" className="h-10" />
+                        <Label className="font-semibold text-sm">Met at / Event / Location</Label>
+                        <ModernFieldSelect
+                          value={watch("metAtLocation") || ""}
+                          onChange={(val) => setValue("metAtLocation", val, { shouldDirty: true })}
+                          placeholder="Select event or location…"
+                          options={MET_AT_OPTIONS}
+                        />
                       </div>
 
+                      {/* Contact Type */}
                       <div className="space-y-1.5">
-                        <Label htmlFor="contactType" className="font-semibold text-sm text-slate-900 dark:text-slate-100">Contact Type</Label>
+                        <Label className="font-semibold text-sm text-slate-900 dark:text-slate-100">Contact Type</Label>
                         <ModernContactTypeSelect
                           value={watch("contactType") || ""}
                           onChange={(val) => setValue("contactType", val, { shouldDirty: true })}
                         />
                       </div>
 
+                      {/* Product / Interest */}
                       <div className="space-y-1.5">
-                        <Label htmlFor="productInterest" className="font-semibold text-sm">Product / Interest</Label>
-                        <Input id="productInterest" {...register("productInterest")} placeholder="e.g. Component Repair & Supply" className="h-10" />
+                        <Label className="font-semibold text-sm">Product / Interest</Label>
+                        <ModernFieldSelect
+                          value={watch("productInterest") || ""}
+                          onChange={(val) => setValue("productInterest", val, { shouldDirty: true })}
+                          placeholder="Select product or interest…"
+                          options={PRODUCT_INTEREST_OPTIONS}
+                        />
                       </div>
 
+                      {/* Relationship Owner / Salesperson */}
                       <div className="space-y-1.5">
-                        <Label htmlFor="relationshipOwner" className="font-semibold text-sm">Relationship Owner / Salesperson</Label>
-                        <Input id="relationshipOwner" {...register("relationshipOwner")} placeholder="e.g. Lead Sales Exec" className="h-10" />
-                      </div>
-
-                      <div className="md:col-span-2 space-y-1.5">
-                        <Label htmlFor="followUpDate" className="font-semibold text-sm text-slate-900 dark:text-slate-100">Suggested Follow-up Date</Label>
-                        <ModernDatePicker
-                          value={watch("followUpDate") || ""}
-                          onChange={(val) => setValue("followUpDate", val, { shouldDirty: true })}
+                        <Label className="font-semibold text-sm">Relationship Owner / Salesperson</Label>
+                        <ModernFieldSelect
+                          value={watch("relationshipOwner") || ""}
+                          onChange={(val) => setValue("relationshipOwner", val, { shouldDirty: true })}
+                          placeholder="Select owner or salesperson…"
+                          options={RELATIONSHIP_OWNER_OPTIONS}
                         />
                       </div>
                     </div>
