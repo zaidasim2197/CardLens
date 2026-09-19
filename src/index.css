@@ -3,22 +3,6 @@
 
 @import "tailwindcss";
 
-@font-face {
-  font-family: 'Shree Devanagari';
-  src: url('/Shree Devanagari 714.ttf') format('truetype');
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Shree Devanagari 714';
-  src: url('/Shree Devanagari 714.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
 @custom-variant dark (&:is(.dark *));
 
 @layer base {
@@ -63,8 +47,8 @@
   h6,
   .font-heading,
   .brand-font {
-    font-family: 'Plus Jakarta Sans Variable', sans-serif;
-    font-weight: 650;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
     text-wrap: balance;
     letter-spacing: -0.035em;
   }
@@ -96,9 +80,9 @@
   --color-slate-800: #302f2c;
   --color-slate-900: #222220;
   --color-slate-950: #171715;
-  --font-heading: 'Plus Jakarta Sans Variable', sans-serif;
-  --font-shree: 'Shree Devanagari', 'Shree Devanagari 714', sans-serif;
-  --font-sans: 'Plus Jakarta Sans Variable', sans-serif;
+  --font-heading: 'Poppins', sans-serif;
+  --font-shree: 'Poppins', sans-serif;
+  --font-sans: 'Poppins', sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -249,7 +233,7 @@ body { -webkit-font-smoothing: antialiased; }
   margin-bottom: 17px;
 }
 .capture-eyebrow > span { width: 5px; height: 5px; border-radius: 50%; background: #95856c; }
-.scan-intro h1 { font-size: clamp(1.8rem, 4.4vw, 2.6rem); font-weight: 650; line-height: 1.17; }
+.scan-intro h1 { font-size: clamp(1.8rem, 4.4vw, 2.6rem); font-weight: 600; line-height: 1.17; }
 .headline-accent { color: #82745f; }
 .scan-intro p { max-width: 330px; font-size: 13px; line-height: 1.8; }
 .capture-surface {
